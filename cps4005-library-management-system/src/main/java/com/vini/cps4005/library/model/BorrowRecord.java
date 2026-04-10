@@ -17,7 +17,7 @@ public class BorrowRecord {
     private int memberId;
     private LocalDate borrowDate;
     private LocalDate dueDate;
-    private boolean returned;
+    private ReturnStatus returned;
     
     public BorrowRecord(
             
@@ -26,7 +26,7 @@ public class BorrowRecord {
             int memberId, 
             LocalDate borrowDate, 
             LocalDate dueDate, 
-            boolean returned) {
+            ReturnStatus returned) {
         
         this.recordId = recordId;
         this.bookId = bookId;
@@ -42,14 +42,14 @@ public class BorrowRecord {
     public int getMemberId() { return memberId; }
     public LocalDate getBorrowDate() { return borrowDate; }
     public LocalDate getDueDate() { return dueDate; }
-    public boolean getReturnStatus() { return returned; }
+    public ReturnStatus getReturnStatus() { return returned; }
     
     public void setRecordId(int recordId) { this.recordId = recordId; }
     public void setBookId(int bookId) { this.bookId = bookId; }
     public void setMemberId(int memberId) { this.memberId = memberId; }
     public void setBorrowDate(LocalDate borrowDate) {this.borrowDate = borrowDate; }
     public void setDueDate(LocalDate dueDate) {this.dueDate = dueDate; }
-    public void setReturnStatus(boolean returned) { this.returned = returned; }
+    public void setReturnStatus(ReturnStatus returned) { this.returned = returned; }
     
     @Override
     public String toString() {
