@@ -133,7 +133,33 @@ public class BookDAO {
                 ));
             }
         } catch (SQLException e) {
-            System.out.println("Error searching for books" + e.getMessage());
+            System.out.println("Error searching for books: " + e.getMessage());
+        }
+        
+        return books;
+    }
+    
+    public List<Book> searchBooksByAuthor(String author) {
+        List<Book> books = new ArrayList<>();
+        String sql = "SELECT * FROM books WHERE author LIKE ?";
+        
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, "%" + author + "%");
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                books.add(new Book(
+                        rs.getInt("book_id"),
+                        rs.getString("title"),
+                        rs.getString("author"),
+                        rs.getString("category"),
+                        rs.getString("availability_status")
+                ));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error searching for books: " + e.getMessage());
         }
         
         return books;
