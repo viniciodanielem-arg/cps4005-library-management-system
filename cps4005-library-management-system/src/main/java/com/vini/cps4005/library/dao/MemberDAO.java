@@ -178,6 +178,33 @@ public class MemberDAO {
             System.out.println("Error deleting member: " + e.getMessage());
             return false;
         }
-    }    
+    }
+
+    public int getActiveBorrowCount(int memberId) {
+        String sql = "SELECT COUNT(*) AS total FROM borrow_records WHERE member_id = ? AND return_status = 'Borrowed'";
+        
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, memberId);
+            
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error getting borrow count: " + e.getMessage());
+        }
+
+            return 0;
+    }
+    
+    public boolean canBorrow(int memberId, MembershipType type) {
+        int currentBorrowed = getActiveBorrowCount(memberId);
+        
+        return currentBorrowed < type.getBorrowingLimit();
+    }
     
 }
