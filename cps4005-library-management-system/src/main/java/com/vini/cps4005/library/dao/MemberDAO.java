@@ -199,12 +199,6 @@ public class MemberDAO {
         }
 
             return 0;
-    }
-    
-    public boolean canBorrow(int memberId, MembershipType type) {
-        int currentBorrowed = getActiveBorrowCount(memberId);
-        
-        return currentBorrowed < type.getBorrowingLimit();
-    }
+    } 
     
 }

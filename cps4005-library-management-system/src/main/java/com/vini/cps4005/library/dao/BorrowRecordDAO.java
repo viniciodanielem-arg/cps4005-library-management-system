@@ -47,28 +47,23 @@ public class BorrowRecordDAO {
     }
     
     public boolean addBorrowRecord(BorrowRecord b) {
-        String sql = "INSERT INTO borrow_records (record_id, book_id, member_id, borrow_date, due_date, return_status) VALUES (?, ?, ?, ?, ?, ?)";
-        
+        String sql = "INSERT INTO borrow_records (book_id, member_id, borrow_date, due_date, return_status) VALUES (?, ?, ?, ?, ?)";
+    
         try (Connection conn = DatabaseConnection.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            pstmt.setInt(1, b.getRecordId());
-            pstmt.setInt(2, b.getBookId());
-            pstmt.setInt(3, b.getMemberId());
-            pstmt.setDate(4, Date.valueOf(b.getBorrowDate()));
-            pstmt.setDate(5, Date.valueOf(b.getDueDate()));
-            pstmt.setString(6, b.getReturnStatus().toString());
-            
-            int rowsAffected = pstmt.executeUpdate();
-            
-            return rowsAffected > 0;
-            
-            
+            PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        
+            pstmt.setInt(1, b.getBookId());
+            pstmt.setInt(2, b.getMemberId());
+            pstmt.setDate(3, Date.valueOf(b.getBorrowDate()));
+            pstmt.setDate(4, Date.valueOf(b.getDueDate()));
+            pstmt.setString(5, b.getReturnStatus().name());
+        
+            return pstmt.executeUpdate() > 0;
+        
         } catch (SQLException e) {
             System.out.println("Error adding borrow record: " + e.getMessage());
             return false;
         }
-    
     }
     
     public List<BorrowRecord> getAllBorrowRecords() {
