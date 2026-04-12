@@ -15,7 +15,9 @@ import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 
 public class Validation {
-
+    
+    
+    //DATE
     private static final DateTimeFormatter FORMATTER =
             DateTimeFormatter.ofPattern("dd-MM-yyyy")
                              .withResolverStyle(ResolverStyle.STRICT);
@@ -26,5 +28,32 @@ public class Validation {
         } catch (DateTimeParseException e) {
             return null;
         }
+    }
+    
+    
+    
+    //EMAIL
+    public boolean isValidEmail(String email) {
+        
+        if (email == null) return false;
+    
+        email = email.trim();
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+    
+        return email.matches(emailRegex);
+    }
+    
+    
+    //ID
+    public Integer isValidID(String input) {
+        if (input == null) return null;
+        
+        input = input.trim();
+        
+        if (!input.matches("\\d+") || input.equals("0")) {
+            return null;
+        }
+        
+        return Integer.parseInt(input);
     }
 }
