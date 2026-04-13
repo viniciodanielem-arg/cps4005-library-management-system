@@ -9,6 +9,7 @@ package com.vini.cps4005.library.util;
  * @author Daniele
  */
 
+import com.vini.cps4005.library.model.MembershipType;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -56,4 +57,17 @@ public class Validation {
         
         return Integer.parseInt(input);
     }
+    
+    //MembershipType
+    public MembershipType parseMembershipType(String input) {
+    if (input == null) return null;
+
+    input = input.trim().toUpperCase();
+
+    try {
+        return MembershipType.valueOf(input);
+    } catch (IllegalArgumentException e) {
+        return null;
+    }
+} 
 }
