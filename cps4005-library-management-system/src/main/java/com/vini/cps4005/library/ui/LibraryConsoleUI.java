@@ -10,7 +10,9 @@ package com.vini.cps4005.library.ui;
  */
 import com.vini.cps4005.library.dao.*;
 import com.vini.cps4005.library.model.*;
+import com.vini.cps4005.library.service.*;
 import com.vini.cps4005.library.util.Validation;
+import java.util.Scanner;
 
 public class LibraryConsoleUI {
     /*
@@ -24,7 +26,10 @@ public class LibraryConsoleUI {
     manageMembers()
     
     manageBorrowRecords()
+    
     */
+    
+    Scanner sc = new Scanner(System.in);
     
     public void start() {
         BookDAO bookDAO = new BookDAO();
@@ -64,5 +69,165 @@ public class LibraryConsoleUI {
         borrowRecordDAO.addBorrowRecord(br1);
         borrowRecordDAO.addBorrowRecord(br2);
         borrowRecordDAO.addBorrowRecord(br3);
+        
+        
+       
+        int choice;
+        
+        do {
+            showMainMenu();
+            choice = Integer.parseInt(sc.nextLine());
+            
+            switch (choice) {
+                case 1:
+                    manageBooks();
+                    break;
+                case 2:
+                    manageMembers();
+                    break;
+                case 3:
+                    manageBorrowingRecords();
+                    break;
+                case 4:
+                    searchRecords();
+                case 5:
+                    System.out.println("Exiting system...");
+                    break;
+                default:
+                    System.out.println("Invalid choice");
+            }
+        } while (choice != 5);
+        
+    }
+    
+    public void showMainMenu() {
+        System.out.println("---------- Main Library System Menu ----------");
+        System.out.println("1. Manage books");
+        System.out.println("2. Manage members");
+        System.out.println("3. Manage borrowing records");
+        System.out.println("4. Search records");
+        System.out.println("5. Exit system");
+        
+        System.out.println("Please enter your Choice (1-5):");
+    }
+
+    
+ 
+    //BOOKS -----------------------
+
+    public void manageBooks() {
+        BookService bookService = new BookService();
+        
+        int choice;
+        
+        do {
+            showBooksMenu();
+            choice = Integer.parseInt(sc.nextLine());
+            
+            switch (choice) {
+                case 1:
+                    manageBooks();
+                    break;
+                case 2:
+                    manageMembers();
+                    break;
+                case 3:
+                    manageBorrowingRecords();
+                    break;
+                case 4:
+                    searchRecords();
+                case 5:
+                    System.out.println("Exiting system...");
+                    break;
+                default:
+                    System.out.println("Invalid choice");
+            }
+        } while (choice != 5);
+        
+    }
+    
+    
+    public void showBooksMenu() {
+        System.out.println("---------- Book Management Menu ----------");
+        System.out.println("1. Add a book");
+        System.out.println("2. Display all books");
+        System.out.println("3. Search for a book");
+        System.out.println("4. Update a book");
+        System.out.println("5. Delete a book");
+        System.out.println("6. Exit Book Management");
+        
+        System.out.println("Please enter your Choice (1-6):");
+    }
+   
+    
+    
+    
+    
+    //MEMBERS -----------------------
+    
+    public void manageMembers() {
+        showMembersMenu();
+        
+        
+        
+    }
+    
+    
+    public void showMembersMenu() {
+        System.out.println("---------- Member Management Menu ----------");
+        System.out.println("1. Add a member");
+        System.out.println("2. Display all members");
+        System.out.println("3. Search for a member");
+        System.out.println("4. Update a member");
+        System.out.println("5. Delete a member");
+        System.out.println("6. Exit Member Management");
+        
+        System.out.println("Please enter your Choice (1-6):");
+    }
+    
+    
+    
+    
+    
+    
+    //BORROW RECORDS -----------------------
+    
+    public void manageBorrowingRecords() {
+        showBorrowingRecordsMenu();
+        
+        
+    }
+    
+    
+    public void showBorrowingRecordsMenu() {
+        System.out.println("---------- Borrowing Records Management Menu ----------");
+        System.out.println("1. Borrow a book");
+        System.out.println("2. Add a borrowing record");
+        System.out.println("3. Update a borrowing record");
+        System.out.println("4. Delete a borrowing record");
+        System.out.println("5. Exit Borrowing Record Management");
+        
+        System.out.println("Please enter your Choice (1-6):");
+    }
+    
+    
+    
+    
+    
+    //SEARCH RECORDS -----------------------
+    
+    public void searchRecords() {
+        showSearchRecordsMenu();
+        
+    }
+    
+    public void showSearchRecordsMenu() {
+        System.out.println("---------- Search Record Menu ----------");
+        System.out.println("1. Display all borrowing records");
+        System.out.println("2. Display a member's borrowing history");
+        System.out.println("3. Display a book's records");
+        System.out.println("4. Exit search records");
+        
+        System.out.println("Please enter your Choice (1-4):");
     }
 }
