@@ -126,17 +126,21 @@ public class LibraryConsoleUI {
             
             switch (choice) {
                 case 1:
-                    manageBooks();
+                    bookService.addBook();
                     break;
                 case 2:
-                    manageMembers();
+                    bookService.displayAllBooks();
                     break;
                 case 3:
-                    manageBorrowingRecords();
+                    bookService.searchForBook();
                     break;
                 case 4:
-                    searchRecords();
+                    bookService.updateBook();
+                    break;
                 case 5:
+                    bookService.deleteBook();
+                    break;
+                case 6:
                     System.out.println("Exiting system...");
                     break;
                 default:
