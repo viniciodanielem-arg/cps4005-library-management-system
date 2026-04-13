@@ -21,6 +21,11 @@ public class Member {
         this.membershipType = membershipType;
     }
 
+    public Member(String name, String email, MembershipType membershipType){
+        this.name = name;
+        this.email = email;
+        this.membershipType = membershipType;
+    }
 
     //Getters
     public int getMemberId() { return memberId; }

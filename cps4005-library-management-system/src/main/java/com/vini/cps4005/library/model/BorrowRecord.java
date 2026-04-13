@@ -36,6 +36,22 @@ public class BorrowRecord {
         this.returned = returned;   
               
     }
+
+    public BorrowRecord(
+            
+            int bookId, 
+            int memberId, 
+            LocalDate borrowDate, 
+            LocalDate dueDate, 
+            ReturnStatus returned) {
+        
+        this.bookId = bookId;
+        this.memberId = memberId;
+        this.borrowDate = borrowDate;
+        this.dueDate = dueDate;
+        this.returned = returned;   
+              
+    }
     
     public int getRecordId() { return recordId; }
     public int getBookId() { return bookId; }
