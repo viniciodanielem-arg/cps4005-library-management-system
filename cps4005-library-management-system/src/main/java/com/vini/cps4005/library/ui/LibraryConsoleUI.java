@@ -29,6 +29,8 @@ public class LibraryConsoleUI {
     
     */
     
+    private final BookService bookService = new BookService();
+
     Scanner sc = new Scanner(System.in);
     
     public void start() {
@@ -116,38 +118,150 @@ public class LibraryConsoleUI {
     //BOOKS -----------------------
 
     public void manageBooks() {
-        BookService bookService = new BookService();
         
         int choice;
         
         do {
             showBooksMenu();
-            choice = Integer.parseInt(sc.nextLine());
+            
+            String input = sc.nextLine();
+            if (!input.matches("\\d+")) {
+                System.out.println("Invalid input. Enter a number.");
+                continue;
+            }
+            
+            choice = Integer.parseInt(input);
             
             switch (choice) {
-                case 1:
-                    bookService.addBook();
+                
+                case 1: //Add a book
+                    System.out.println("Enter title: ");
+                    String title = sc.nextLine();
+                    
+                    System.out.println("Enter author: ");
+                    String author = sc.nextLine();
+                    
+                    System.out.println("Enter category: ");
+                    String category = sc.nextLine();
+                   
+                    if (bookService.addBook(title, author, category)) {
+                        System.out.println("Book added successfully");
+                    } else {
+                        System.out.println("Failed to add book");
+                    }
                     break;
-                case 2:
-                    bookService.displayAllBooks();
+                    
+                case 2: // Display all books
+                    System.out.println("\n=== All Books ===");
+                    for (Book book : bookService.getAllBooks()) {
+                        System.out.println(book);
+                    }
                     break;
-                case 3:
-                    bookService.searchForBook();
+                    
+                case 3: //search for books
+                    handleBookSearch();
                     break;
-                case 4:
-                    bookService.updateBook();
+                    
+                case 4: // Update a book
+                    System.out.println("Enter book ID to update: ");
+                    int updateId = Integer.parseInt(sc.nextLine());
+                    
+                    System.out.println("Enter new title (leave blank to keep the same)");
+                    String newTitle = sc.nextLine();
+                    
+                    System.out.println("Enter new author (leave blank to keep the same)");
+                    String newAuthor = sc.nextLine();
+                    
+                    System.out.println("Enter new category (leave blank to keep the same)");
+                    String newCategory = sc.nextLine();
+                    
+                    if (bookService.updateBook(updateId, newTitle, newAuthor, newCategory)) {
+                        System.out.println("Book updated successfully");
+                    } else {
+                        System.out.println("Update failed");
+                    }
                     break;
-                case 5:
-                    bookService.deleteBook();
+                    
+                case 5: // Delete a book
+                    System.out.println("Enter book ID to delete: ");
+                    int deleteId = Integer.parseInt(sc.nextLine());
+                    
+                    if (bookService.deleteBook(deleteId)) {
+                        System.out.println("Book deleted successfully");
+                    } else {
+                        System.out.println("Delete failed.");
+                    }
                     break;
+                    
                 case 6:
-                    System.out.println("Exiting system...");
+                    System.out.println("Returning to main menu...");
                     break;
+                
+                default:
+                    System.out.println("Invalid choice.");
+                           
+                    
+            }
+        } while (choice != 6);
+    }
+    
+    private void handleBookSearch() {
+        int choice;
+        
+        do {
+            System.out.println("\n---Search Books ---");
+            System.out.println("1. By Id");
+            System.out.println("2. By Title");
+            System.out.println("3. By Author");
+            System.out.println("4. Back");
+            
+            String input = sc.nextLine();
+            if (!input.matches("\\d+")) {
+                System.out.println("Invalid input.");
+                continue;
+            }
+            
+            choice = Integer.parseInt(input);
+           
+            switch (choice) {
+                
+                case 1:
+                    System.out.println("Enter ID: ");
+                    int id = Integer.parseInt(sc.nextLine());
+                    
+                    Book book = bookService.getBookById(id);
+                    if (book != null) {
+                        System.out.println(book);
+                    } else {
+                        System.out.println("Book not found.");
+                    }
+                    break;
+                    
+                case 2:
+                    System.out.println("Enter title: ");
+                    String title = sc.nextLine();
+                    
+                    for (Book b : bookService.searchByTitle(title)) {
+                        System.out.println(b);
+                    }
+                    break;
+                    
+                case 3:
+                    System.out.println("Enter author: ");
+                    String author = sc.nextLine();
+                    
+                    for (Book b : bookService.searchByAuthor(author)) {
+                        System.out.println(b);
+                    }
+                    break;
+                    
+                case 4:
+                    break;
+                    
                 default:
                     System.out.println("Invalid choice");
             }
-        } while (choice != 5);
-        
+        } while (choice != 4);
     }
     
     
