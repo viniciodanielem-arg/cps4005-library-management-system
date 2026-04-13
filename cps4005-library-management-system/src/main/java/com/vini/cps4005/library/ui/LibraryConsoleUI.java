@@ -30,6 +30,9 @@ public class LibraryConsoleUI {
     */
     
     private final BookService bookService = new BookService();
+    private final MemberService memberService = new MemberService();
+    private final BorrowService borrowRecordService = new BorrowService();
+    Validation validator = new Validation();
 
     Scanner sc = new Scanner(System.in);
     
@@ -62,7 +65,7 @@ public class LibraryConsoleUI {
         memberDAO.addMember(member3);
         
         //inserting sample borrow records:
-        Validation validator = new Validation();
+        
         
         BorrowRecord br1 = new BorrowRecord(2, 1, validator.parseDate("2025-03-01"), validator.parseDate("2025-03-15"), ReturnStatus.BORROWED);
         BorrowRecord br2 = new BorrowRecord(1, 2, validator.parseDate("2025-03-02"), validator.parseDate("2025-03-16"), ReturnStatus.RETURNED);
@@ -119,7 +122,7 @@ public class LibraryConsoleUI {
 
     public void manageBooks() {
         
-        int choice;
+        int choice = -1;
         
         do {
             showBooksMenu();
@@ -206,7 +209,7 @@ public class LibraryConsoleUI {
     }
     
     private void handleBookSearch() {
-        int choice;
+        int choice = -1;
         
         do {
             System.out.println("\n---Search Books ---");
@@ -284,10 +287,151 @@ public class LibraryConsoleUI {
     //MEMBERS -----------------------
     
     public void manageMembers() {
-        showMembersMenu();
+        int choice = -1;
         
+        do {
+            showMembersMenu();
+            
+            String input  = sc.nextLine();
+            if (!input.matches("\\d+")) {
+                System.out.println("Invalid input. Enter a number.");
+                continue;
+            }
+            
+            choice = Integer.parseInt(input);
+            
+            switch (choice) {
+                
+                case 1: //Add a member
+                    System.out.println("Enter name: ");
+                    String name = sc.nextLine();
+
+                    System.out.println("Enter email: ");
+                    String email = null;
+                    String emailInput = sc.nextLine();
+                    if (validator.isValidEmail(emailInput)) email = emailInput; 
+                    
+                    System.out.println("Enter membership type:(STUDENT, STAFF, ADMIN)");
+                    MembershipType membershipType = validator.parseMembershipType(sc.nextLine());
+                    if (membershipType == null) {
+                        System.out.println("Invalid membership type, defaulting to Student type...");
+                        membershipType = MembershipType.STUDENT; // (DEFAULT = STUDENT)
+                    }
+                    
+                    if (memberService.addMember(name, email, membershipType)) {
+                        System.out.println("Member added successfully");
+                    } else {
+                        System.out.println("Failed to add member");
+                    }
+                
+                case 2: // Display all members
+                    System.out.println("\n=== All Members ===");
+                    for (Member member : memberService.getAllMembers()) {
+                        System.out.println(member);
+                        }
+                    break;
+                    
+                case 3: // search for members
+                    handleMemberSearch();
+                    break;
+                    
+                case 4: // Update a member
+                    System.out.println("Enter member Id to update: ");
+                    int updateId = Integer.parseInt(sc.nextLine());
+                    
+                    System.out.println("Enter new name (leave blank to keep the same)");
+                    String newName = sc.nextLine();
+                    
+                    System.out.println("Enter new email (leave blank to keep the same)");
+                    String newEmail = null;
+                    String emailInput2 = sc.nextLine();
+                    if (validator.isValidEmail(emailInput2)) newEmail = emailInput2; 
+                    
+                    System.out.println("Enter new membership type (leave blank to keep the same)");
+                    MembershipType newMembershipType = validator.parseMembershipType(sc.nextLine());
+                    if (newMembershipType == null) {
+                        System.out.println("Invalid membership type, defaulting to Student type...");
+                        newMembershipType = MembershipType.STUDENT; // (DEFAULT = STUDENT)
+                    }
+                    
+                    if (memberService.updateMember(updateId, newName, newEmail, newMembershipType)) {
+                        System.out.println("Member updated successfully");
+                    } else {
+                        System.out.println("Update failed");
+                    }
+                    break;
+                    
+                case 5: // Delete book
+                    System.out.println("Enter member ID to delete: ");
+                    int deleteId = Integer.parseInt(sc.nextLine());
+                    
+                    if (memberService.deleteMember(deleteId)) {
+                        System.out.println("member deleted successfully");
+                    } else {
+                        System.out.println("delete failed");
+                    }
+                    break;
+                    
+                case 6:
+                    System.out.println("Returning to main menu...");
+                    break;
+                    
+                default:
+                    System.out.println("Invalid choice");
+                    
+            }
+        } while (choice != 6);
+            
+    }
+    
+    public void handleMemberSearch() {
+        int choice = -1;
         
-        
+        do {
+            System.out.println("\n---Search Members---");
+            System.out.println("1. By Id");
+            System.out.println("2. By Name");
+            System.out.println("3. Back");
+            
+            String input = sc.nextLine();
+                if (!input.matches("\\d+")) {
+                    System.out.println("Invalid input.");
+                    continue;
+                }
+            
+            choice = Integer.parseInt(input);
+                
+            switch (choice) {
+                
+                case 1:
+                    System.out.println("Enter ID: ");
+                    int id = validator.isValidID(sc.nextLine());
+                    
+                    Member member = memberService.getMemberById(id);
+                    if (member != null) {
+                        System.out.println(member);
+                    } else {
+                        System.out.println("Book not found");
+                    }
+                    break;
+                    
+                case 2:
+                    System.out.println("Enter Name: ");
+                    String name = sc.nextLine();
+                    
+                    for (Member mem : memberService.getMemberByName(name)) {
+                        System.out.println(mem);
+                    }
+                    break;
+                    
+                case 3:
+                    break;
+                    
+                default:
+                    System.out.println("Invalid choice");
+            }    
+
+        } while (choice != 3);
     }
     
     
