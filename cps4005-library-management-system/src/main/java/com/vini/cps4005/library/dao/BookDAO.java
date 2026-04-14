@@ -204,5 +204,23 @@ public class BookDAO {
         }
     }
     
+    public boolean isTableEmpty() {
+        String sql = "SELECT COUNT(*) FROM books";
+        
+        try (Connection conn = DatabaseConnection.connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()){
+                return rs.getInt(1) == 0;
+            }
+            
+        } catch (SQLException e) {
+            System.out.println("Error checking books table: " + e.getMessage());
+        }
+        
+        return true;
+    }
+    
     
 }

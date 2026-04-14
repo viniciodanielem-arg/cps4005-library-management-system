@@ -24,9 +24,9 @@ public class BorrowRecordDAO {
     ▪ Delete: Remove incorrect borrowing records.
     */
     
-    public void CreateTable() {
+    public void createTable() {
         String sql = """
-                    CREATE TABLE borrow_records (
+                    CREATE TABLE IF NOT EXISTS borrow_records (
                         record_id INTEGER PRIMARY KEY,
                         book_id INTEGER NOT NULL,
                         member_id INTEGER NOT NULL,
@@ -157,13 +157,41 @@ public class BorrowRecordDAO {
         return bookRecords;
     }
     
-    public boolean updateBorrowingStatus(int recordId) {
-        String sql = "UPDATE borrow_records SET return_status WHERE record_id = ?";
+    public BorrowRecord searchById(int recordId) {
+        String sql = "SELECT * FROM borrow_records WHERE record_id = ?";
         
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setInt(1, recordId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            BorrowRecord foundBr = new BorrowRecord(
+                        rs.getInt("record_id"),
+                        rs.getInt("book_id"),
+                        rs.getInt("member_id"),
+                        rs.getDate("borrow_date").toLocalDate(),
+                        rs.getDate("due_date").toLocalDate(),
+                        ReturnStatus.valueOf(rs.getString("return_status"))
+                );
+            
+            return foundBr;
+            
+        } catch (SQLException e) {
+            System.out.println("Error finding records (by book)" + e.getMessage());
+            return null;
+        }
+        
+    }    
+    
+    public boolean updateBorrowingStatus(int recordId, ReturnStatus returnStatus) {
+        String sql = "UPDATE borrow_records SET return_status = ? WHERE record_id = ?";
+        
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, returnStatus.toString());
+            pstmt.setInt(2, recordId);
             
             int rowsAffected = pstmt.executeUpdate();
             
@@ -192,4 +220,22 @@ public class BorrowRecordDAO {
             return false;        
         }
     }
+    
+    public boolean isTableEmpty() {
+        String sql = "SELECT COUNT(*) FROM borrow_records";
+        
+        try (Connection conn = DatabaseConnection.connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()){
+                return rs.getInt(1) == 0;
+            }
+            
+        } catch (SQLException e) {
+            System.out.println("Error checking borrow records table: " + e.getMessage());
+        }
+        
+        return true;
+    }    
 }

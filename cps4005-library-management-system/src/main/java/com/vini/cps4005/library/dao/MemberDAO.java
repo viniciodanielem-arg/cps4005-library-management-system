@@ -201,4 +201,22 @@ public class MemberDAO {
             return 0;
     } 
     
+    
+    public boolean isTableEmpty() {
+        String sql = "SELECT COUNT(*) FROM members";
+        
+        try (Connection conn = DatabaseConnection.connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()){
+                return rs.getInt(1) == 0;
+            }
+            
+        } catch (SQLException e) {
+            System.out.println("Error checking members table: " + e.getMessage());
+        }
+        
+        return true;
+    }    
 }
