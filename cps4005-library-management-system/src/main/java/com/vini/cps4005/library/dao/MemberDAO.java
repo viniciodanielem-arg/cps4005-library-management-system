@@ -123,10 +123,10 @@ public class MemberDAO {
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setString(1, name);
+            pstmt.setString(1, "%" + name + "%");
             ResultSet rs = pstmt.executeQuery();
             
-            if (rs.next()) {
+            while (rs.next()) {
                 members.add(new Member(
                         rs.getInt("member_id"),
                         rs.getString("member_name"),

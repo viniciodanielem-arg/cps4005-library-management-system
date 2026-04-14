@@ -83,6 +83,11 @@ public class LibraryConsoleUI {
             borrowRecordDAO.addBorrowRecord(br3);
         }
         
+        int overdueUpdated = borrowRecordService.updateOverdueRecords();
+        if (overdueUpdated > 0) {
+            System.out.println(overdueUpdated + " borrow record(s) marked as OVERDUE.");
+        }
+        
         
        
         int choice;
@@ -206,12 +211,24 @@ public class LibraryConsoleUI {
                         break;
                     }
                     
-                    if (bookService.deleteBook(deleteId)) {
-                        System.out.println("Book deleted successfully");
+                    System.out.println("Are you sure you wish to delete book " + deleteId + "? (Y/N)");
+                    String response = sc.nextLine().trim();
+                    
+                    if (response.equalsIgnoreCase("y")) {
+                       if (bookService.deleteBook(deleteId)) {
+                            System.out.println("Book deleted successfully");
+                        } else {
+                            System.out.println("Delete failed.");
+                        }
+
+                    } else if (response.equalsIgnoreCase("n")) {
+                        System.out.println("No worries, heading back...");
+
                     } else {
-                        System.out.println("Delete failed.");
+                        System.out.println("Invalid response.");
                     }
                     break;
+                    
                     
                 case 6:
                     System.out.println("Returning to main menu...");
@@ -512,7 +529,8 @@ public class LibraryConsoleUI {
     //BORROW RECORDS -----------------------
     
     public void manageBorrowingRecords() {
-      
+        borrowRecordService.updateOverdueRecords();
+        
         int choice = -1;
         
         do {
@@ -661,6 +679,7 @@ public class LibraryConsoleUI {
     //SEARCH RECORDS -----------------------
     
     public void searchRecords() {
+        borrowRecordService.updateOverdueRecords();
         
         int choice = -1;
         
@@ -710,13 +729,21 @@ public class LibraryConsoleUI {
                         System.out.println("\n" + bRec);
                     }
                     break;
+                    
                 case 4:
+                    System.out.println("\n--- Overdue Records ---");
+                    for (BorrowRecord overdue : borrowRecordService.getOverdueRecords()) {
+                        System.out.println("\n" + overdue);
+                    }
+                    break;
+                    
+                case 5:
                     break;
                     
                 default:
                     System.out.println("Invalid Choice");
             }
-        } while (choice != 4);
+        } while (choice != 5);
         
         
         
@@ -727,8 +754,9 @@ public class LibraryConsoleUI {
         System.out.println("1. Display all borrowing records");
         System.out.println("2. Display a member's borrowing history");
         System.out.println("3. Display a book's records");
-        System.out.println("4. Exit search records");
+        System.out.println("4. Display overdue records");
+        System.out.println("5. Exit search records");
         
-        System.out.println("Please enter your Choice (1-4):");
+        System.out.println("Please enter your Choice (1-5):");
     }
 }

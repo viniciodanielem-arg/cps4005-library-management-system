@@ -191,4 +191,12 @@ public class BorrowService {
     public List<BorrowRecord> getBookBorrowRecords(int bookId) {
         return borrowDAO.searchByBook(bookId);
     }
+    
+    public int updateOverdueRecords() {
+        return borrowDAO.markOverdueRecords();
+    }
+
+    public List<BorrowRecord> getOverdueRecords() {
+        return borrowDAO.getOverdueRecords();
+    }
 }

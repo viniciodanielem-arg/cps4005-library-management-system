@@ -240,5 +240,50 @@ public class BorrowRecordDAO {
         }
         
         return true;
-    }    
+    }
+
+    public int markOverdueRecords() {
+        String sql = """
+            UPDATE borrow_records
+            SET return_status = 'OVERDUE'
+            WHERE due_date < DATE('now')
+            AND return_status = 'BORROWED'
+            """;
+
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            return pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.out.println("Error updating overdue records: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    public List<BorrowRecord> getOverdueRecords() {
+        List<BorrowRecord> records = new ArrayList<>();
+        String sql = "SELECT * FROM borrow_records WHERE return_status = 'OVERDUE'";
+
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                records.add(new BorrowRecord(
+                        rs.getInt("record_id"),
+                        rs.getInt("book_id"),
+                        rs.getInt("member_id"),
+                        rs.getDate("borrow_date").toLocalDate(),
+                        rs.getDate("due_date").toLocalDate(),
+                        ReturnStatus.valueOf(rs.getString("return_status"))
+                ));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error retrieving overdue records: " + e.getMessage());
+        }
+
+        return records;
+    }
 }
