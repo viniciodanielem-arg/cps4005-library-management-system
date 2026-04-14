@@ -4,17 +4,11 @@
  */
 package com.vini.cps4005.library;
 
-import com.vini.cps4005.library.util.DatabaseConnection;
-import java.sql.Connection;
+import com.vini.cps4005.library.ui.LibraryConsoleUI;
 
 public class Main {
     public static void main(String[] args) {
-        Connection conn = DatabaseConnection.connect();
-
-        if (conn != null) {
-            System.out.println("Connected to SQLite successfully.");
-        } else {
-            System.out.println("Connection failed.");
-        }
+        LibraryConsoleUI ui = new LibraryConsoleUI();
+        ui.start();
     }
 }

@@ -34,9 +34,9 @@ public class LibraryConsoleUI {
     private final BookService bookService = new BookService();
     private final MemberService memberService = new MemberService();
     private final BorrowService borrowRecordService = new BorrowService();
-    Validation validator = new Validation();
-
-    Scanner sc = new Scanner(System.in);
+    
+    private final Validation validator = new Validation();
+    private final Scanner sc = new Scanner(System.in);
     
     public void start() {
         BookDAO bookDAO = new BookDAO();
@@ -52,9 +52,11 @@ public class LibraryConsoleUI {
         Book book2 = new Book("Database Systems", "Maria Garcia", "Computer Science", "Borrowed");
         Book book3 = new Book("Software Engineering Principles", "Alan Brown", "Engineering", "Available");
         
-        bookDAO.addBook(book1);
-        bookDAO.addBook(book2);
-        bookDAO.addBook(book3);
+        if (bookDAO.isTableEmpty()) {
+            bookDAO.addBook(book1);
+            bookDAO.addBook(book2);
+            bookDAO.addBook(book3);
+        }
         
         //inserting sample members:
         
@@ -62,20 +64,24 @@ public class LibraryConsoleUI {
         Member member2 = new Member("Michael Lee", "michael.lee@stmarys.ac.uk", MembershipType.STAFF);
         Member member3 = new Member("Sara Ahmed", "sara.ahmed@stmarys.ac.uk", MembershipType.STUDENT);
         
-        memberDAO.addMember(member1);
-        memberDAO.addMember(member2);
-        memberDAO.addMember(member3);
+        if (memberDAO.isTableEmpty()) {
+            memberDAO.addMember(member1);
+            memberDAO.addMember(member2);
+            memberDAO.addMember(member3);
+        }
         
         //inserting sample borrow records:
         
         
-        BorrowRecord br1 = new BorrowRecord(2, 1, validator.parseDate("2025-03-01"), validator.parseDate("2025-03-15"), ReturnStatus.BORROWED);
-        BorrowRecord br2 = new BorrowRecord(1, 2, validator.parseDate("2025-03-02"), validator.parseDate("2025-03-16"), ReturnStatus.RETURNED);
-        BorrowRecord br3 = new BorrowRecord(3, 3, validator.parseDate("2025-03-05"), validator.parseDate("2025-03-19"), ReturnStatus.BORROWED);
+        BorrowRecord br1 = new BorrowRecord(2, 1, validator.parseDate("01-03-2025"), validator.parseDate("15-03-2025"), ReturnStatus.BORROWED);
+        BorrowRecord br2 = new BorrowRecord(1, 2, validator.parseDate("02-03-2025"), validator.parseDate("16-03-2025"), ReturnStatus.RETURNED);
+        BorrowRecord br3 = new BorrowRecord(3, 3, validator.parseDate("05-03-2025"), validator.parseDate("19-03-2025"), ReturnStatus.BORROWED);
         
-        borrowRecordDAO.addBorrowRecord(br1);
-        borrowRecordDAO.addBorrowRecord(br2);
-        borrowRecordDAO.addBorrowRecord(br3);
+        if (borrowRecordDAO.isTableEmpty()) {
+            borrowRecordDAO.addBorrowRecord(br1);
+            borrowRecordDAO.addBorrowRecord(br2);
+            borrowRecordDAO.addBorrowRecord(br3);
+        }
         
         
        
@@ -83,7 +89,7 @@ public class LibraryConsoleUI {
         
         do {
             showMainMenu();
-            choice = Integer.parseInt(sc.nextLine());
+            choice = validator.parseId(sc.nextLine());
             
             switch (choice) {
                 case 1:
@@ -97,6 +103,7 @@ public class LibraryConsoleUI {
                     break;
                 case 4:
                     searchRecords();
+                    break;
                 case 5:
                     System.out.println("Exiting system...");
                     break;
@@ -169,7 +176,11 @@ public class LibraryConsoleUI {
                     
                 case 4: // Update a book
                     System.out.println("Enter book ID to update: ");
-                    int updateId = Integer.parseInt(sc.nextLine());
+                    Integer updateId = validator.parseId(sc.nextLine());
+                    if (updateId == null) {
+                        System.out.println("Invalid ID.");
+                        break;
+                    }
                     
                     System.out.println("Enter new title (leave blank to keep the same)");
                     String newTitle = sc.nextLine();
@@ -189,7 +200,11 @@ public class LibraryConsoleUI {
                     
                 case 5: // Delete a book
                     System.out.println("Enter book ID to delete: ");
-                    int deleteId = Integer.parseInt(sc.nextLine());
+                    Integer deleteId = validator.parseId(sc.nextLine());
+                    if (deleteId == null) {
+                        System.out.println("Invalid ID.");
+                        break;
+                    }
                     
                     if (bookService.deleteBook(deleteId)) {
                         System.out.println("Book deleted successfully");
@@ -232,7 +247,11 @@ public class LibraryConsoleUI {
                 
                 case 1:
                     System.out.println("Enter ID: ");
-                    int id = Integer.parseInt(sc.nextLine());
+                    Integer id = validator.parseId(sc.nextLine());
+                    if (id == null) {
+                        System.out.println("Invalid ID.");
+                        break;
+                    }
                     
                     Book book = bookService.getBookById(id);
                     if (book != null) {
@@ -308,10 +327,20 @@ public class LibraryConsoleUI {
                     System.out.println("Enter name: ");
                     String name = sc.nextLine();
 
-                    System.out.println("Enter email: ");
-                    String email = null;
-                    String emailInput = sc.nextLine();
-                    if (validator.isValidEmail(emailInput)) email = emailInput; 
+                    String email;
+
+                    while (true) {
+                        System.out.print("Enter email: ");
+                        String emailInput = sc.nextLine();
+
+                        if (validator.isValidEmail(emailInput)) {
+                            email = emailInput;
+                            break;
+                        } else {
+                            System.out.println("Invalid email. Try again.");
+                        }
+                    }
+
                     
                     System.out.println("Enter membership type:(STUDENT, STAFF, ADMIN)");
                     MembershipType membershipType = validator.parseMembershipType(sc.nextLine());
@@ -325,6 +354,7 @@ public class LibraryConsoleUI {
                     } else {
                         System.out.println("Failed to add member");
                     }
+                    break;
                 
                 case 2: // Display all members
                     System.out.println("\n=== All Members ===");
@@ -339,21 +369,38 @@ public class LibraryConsoleUI {
                     
                 case 4: // Update a member
                     System.out.println("Enter member Id to update: ");
-                    int updateId = Integer.parseInt(sc.nextLine());
+                    Integer updateId = validator.parseId(sc.nextLine());
+                    if (updateId == null) {
+                        System.out.println("Invalid ID.");
+                        break;
+                    }
                     
                     System.out.println("Enter new name (leave blank to keep the same)");
                     String newName = sc.nextLine();
                     
                     System.out.println("Enter new email (leave blank to keep the same)");
+                    String emailInput2 = sc.nextLine().trim();
                     String newEmail = null;
-                    String emailInput2 = sc.nextLine();
-                    if (validator.isValidEmail(emailInput2)) newEmail = emailInput2; 
+
+                    if (!emailInput2.isEmpty()) {
+                        if (validator.isValidEmail(emailInput2)) {
+                            newEmail = emailInput2;
+                        } else {
+                            System.out.println("Invalid email.");
+                            break;
+                        }
+                    }
                     
                     System.out.println("Enter new membership type (leave blank to keep the same)");
-                    MembershipType newMembershipType = validator.parseMembershipType(sc.nextLine());
-                    if (newMembershipType == null) {
-                        System.out.println("Invalid membership type, defaulting to Student type...");
-                        newMembershipType = MembershipType.STUDENT; // (DEFAULT = STUDENT)
+                    String typeInput = sc.nextLine().trim();
+                    MembershipType newMembershipType = null;
+                    
+                    if (!typeInput.isEmpty()) {
+                        newMembershipType = validator.parseMembershipType(typeInput);
+                        if (newMembershipType == null) {
+                            System.out.println("Invalid membership type");
+                            break;
+                        }
                     }
                     
                     if (memberService.updateMember(updateId, newName, newEmail, newMembershipType)) {
@@ -363,11 +410,15 @@ public class LibraryConsoleUI {
                     }
                     break;
                     
-                case 5: // Delete book
+                case 5: // Delete member
                     System.out.println("Enter member ID to delete: ");
-                    int deleteId = Integer.parseInt(sc.nextLine());
+                    Integer memId = validator.parseId(sc.nextLine());
+                    if (memId == null) {
+                        System.out.println("Invalid ID.");
+                        break;
+                    }
                     
-                    if (memberService.deleteMember(deleteId)) {
+                    if (memberService.deleteMember(memId)) {
                         System.out.println("member deleted successfully");
                     } else {
                         System.out.println("delete failed");
@@ -407,13 +458,17 @@ public class LibraryConsoleUI {
                 
                 case 1:
                     System.out.println("Enter ID: ");
-                    int id = validator.isValidID(sc.nextLine());
+                    Integer id = validator.parseId(sc.nextLine());
+                    if (id == null) {
+                        System.out.println("Invalid ID.");
+                        break;
+                    }
                     
                     Member member = memberService.getMemberById(id);
                     if (member != null) {
                         System.out.println(member);
                     } else {
-                        System.out.println("Book not found");
+                        System.out.println("Member not found");
                     }
                     break;
                     
@@ -476,11 +531,19 @@ public class LibraryConsoleUI {
                 case 1: //Borrow a book (1st person)
                     System.out.println("Enter your member Id: ");
                     String memberInput = sc.nextLine();
-                    int memId = validator.isValidID(memberInput);
+                    Integer memId = validator.parseId(memberInput);
+                    if (memId == null) {
+                        System.out.println("Invalid member ID.");
+                        break;
+                    }
 
                     System.out.println("Enter chosen book Id: ");
                     String bookIdInput = sc.nextLine();
-                    int bookId = validator.isValidID(bookIdInput);
+                    Integer bookId = validator.parseId(bookIdInput);
+                    if (bookId == null) {
+                        System.out.println("Invalid book ID.");
+                        break;
+                    }
                     
                     if (borrowRecordService.borrowBook(memId, bookId)) {
                         System.out.println("Book borrowed successsfully");
@@ -492,11 +555,19 @@ public class LibraryConsoleUI {
                 case 2: // Add a Borrowing Record
                     System.out.println("Please enter the member Id: ");
                     String memberInput2 = sc.nextLine();
-                    int memId2 = validator.isValidID(memberInput2);
+                    Integer memId2 = validator.parseId(memberInput2);
+                    if (memId2 == null) {
+                        System.out.println("Invalid member ID.");
+                        break;
+                    }
                     
                     System.out.println("Please enter the book Id");
                     String bookIdInput2 = sc.nextLine();
-                    int bookId2 = validator.isValidID(bookIdInput2);
+                    Integer bookId2 = validator.parseId(bookIdInput2);
+                    if (bookId2 == null) {
+                        System.out.println("Invalid book ID.");
+                        break;
+                    }
                                        
                     System.out.println("Please enter the borrow date (dd-MM-yyyy)");
                     String dateInput = sc.nextLine();
@@ -525,12 +596,16 @@ public class LibraryConsoleUI {
                     
                 case 3: // Update a borrowing record return status
                     
-                    System.out.println("Enter member Id to update: ");
-                    int updateId = validator.isValidID(sc.nextLine());
+                    System.out.println("Enter borrow record Id to update: ");
+                    Integer updateId = validator.parseId(sc.nextLine());
+                    if (updateId == null) {
+                        System.out.println("Invalid ID.");
+                        break;
+                    }
                     
                     System.out.println("Enter new return Status (leave blank to keep the same)");
-                    String ReturnStatusInput = sc.nextLine();
-                    ReturnStatus updateStatus = validator.parseReturnStatus(ReturnStatusInput);
+                    String returnStatusInput = sc.nextLine();
+                    ReturnStatus updateStatus = validator.parseReturnStatus(returnStatusInput);
                     
                     if (borrowRecordService.updateBorrowingStatus(updateId, updateStatus)) {
                         System.out.println("Successfully updated borrowing Status");
@@ -541,7 +616,11 @@ public class LibraryConsoleUI {
                     
                 case 4: // Delete borrowing record
                     System.out.println("Enter Borrow record ID to delete: ");
-                    int deleteId = validator.isValidID(sc.nextLine());
+                    Integer deleteId = validator.parseId(sc.nextLine());
+                    if (deleteId == null) {
+                        System.out.println("Invalid ID.");
+                        break;
+                    }
                     
                     if (borrowRecordService.deleteBorrowRecord(deleteId)) {
                         System.out.println("Borrow record deleted successfully");
@@ -572,7 +651,7 @@ public class LibraryConsoleUI {
         System.out.println("4. Delete a borrowing record");
         System.out.println("5. Exit Borrowing Record Management");
         
-        System.out.println("Please enter your Choice (1-6):");
+        System.out.println("Please enter your Choice (1-5):");
     }
     
     
@@ -606,7 +685,11 @@ public class LibraryConsoleUI {
                     
                 case 2: //Display a member's borrowing history
                     System.out.println("Please enter a member Id: ");
-                    int memId = validator.isValidID(sc.nextLine());
+                    Integer memId = validator.parseId(sc.nextLine());
+                    if (memId == null) {
+                        System.out.println("Invalid ID.");
+                        break;
+                    }
                     
                     System.out.println("Member " + memId + "'s borrowing history:");
                     for (BorrowRecord bR : borrowRecordService.getMemberBorrowRecords(memId)) {
@@ -615,10 +698,14 @@ public class LibraryConsoleUI {
                     break;
 
                 case 3: //Display a book's borrowing history
-                    System.out.println("Please enter a member Id: ");
-                    int bookId = validator.isValidID(sc.nextLine());
+                    System.out.println("Please enter a book Id: ");
+                    Integer bookId = validator.parseId(sc.nextLine());
+                    if (bookId == null) {
+                        System.out.println("Invalid ID.");
+                        break;
+                    }
                     
-                    System.out.println("Member " + bookId + "'s borrowing history:");
+                    System.out.println("Book " + bookId + "'s borrowing history:");
                     for (BorrowRecord bRec : borrowRecordService.getBookBorrowRecords(bookId)) {
                         System.out.println("\n" + bRec);
                     }

@@ -10,17 +10,20 @@ package com.vini.cps4005.library.util;
  */
 
 import com.vini.cps4005.library.model.MembershipType;
+import com.vini.cps4005.library.model.ReturnStatus;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
+
 
 public class Validation {
     
     
     //DATE
     private static final DateTimeFormatter FORMATTER =
-            DateTimeFormatter.ofPattern("dd-MM-yyyy")
+            DateTimeFormatter.ofPattern("dd-MM-uuuu")
                              .withResolverStyle(ResolverStyle.STRICT);
 
     public LocalDate parseDate(String input) {
@@ -46,7 +49,7 @@ public class Validation {
     
     
     //ID
-    public Integer isValidID(String input) {
+    public Integer parseId(String input) {
         if (input == null) return null;
         
         input = input.trim();
@@ -55,19 +58,33 @@ public class Validation {
             return null;
         }
         
-        return Integer.parseInt(input);
+        return Integer.valueOf(input);
     }
     
     //MembershipType
     public MembershipType parseMembershipType(String input) {
-    if (input == null) return null;
+        if (input == null) return null;
 
-    input = input.trim().toUpperCase();
+        input = input.trim().toUpperCase();
 
-    try {
-        return MembershipType.valueOf(input);
-    } catch (IllegalArgumentException e) {
-        return null;
+        try {
+            return MembershipType.valueOf(input);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
-} 
+    
+    //ReturnStatus
+    public ReturnStatus parseReturnStatus(String input) {
+        if (input == null) return null;
+        
+        input = input.trim().toUpperCase();
+        
+        try {
+            return ReturnStatus.valueOf(input);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
 }

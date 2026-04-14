@@ -47,6 +47,11 @@ public class BorrowRecordDAO {
     }
     
     public boolean addBorrowRecord(BorrowRecord b) {
+        if (b.getBorrowDate() == null || b.getDueDate() == null || b.getReturnStatus() == null) {
+            System.out.println("Error adding borrow record: missing required values.");
+            return false;
+        }
+        
         String sql = "INSERT INTO borrow_records (book_id, member_id, borrow_date, due_date, return_status) VALUES (?, ?, ?, ?, ?)";
     
         try (Connection conn = DatabaseConnection.connect();
@@ -128,7 +133,7 @@ public class BorrowRecordDAO {
 
 
     public List<BorrowRecord> searchByBook(int bookId) {
-        String sql = "SELECT * FROM borrow_records WHERE book_name LIKE ? ORDER BY borrow_date DESC";
+        String sql = "SELECT * FROM borrow_records WHERE book_id = ? ORDER BY borrow_date DESC";
         List<BorrowRecord> bookRecords = new ArrayList<>();
         
         try (Connection conn = DatabaseConnection.connect();
@@ -144,9 +149,7 @@ public class BorrowRecordDAO {
                         rs.getInt("member_id"),
                         rs.getDate("borrow_date").toLocalDate(),
                         rs.getDate("due_date").toLocalDate(),
-                        ReturnStatus.valueOf(rs.getString("return_status"))
-                        
-                
+                        ReturnStatus.valueOf(rs.getString("return_status"))      
                 ));
             }
             
@@ -166,22 +169,22 @@ public class BorrowRecordDAO {
             pstmt.setInt(1, recordId);
             ResultSet rs = pstmt.executeQuery();
             
-            BorrowRecord foundBr = new BorrowRecord(
-                        rs.getInt("record_id"),
-                        rs.getInt("book_id"),
-                        rs.getInt("member_id"),
-                        rs.getDate("borrow_date").toLocalDate(),
-                        rs.getDate("due_date").toLocalDate(),
-                        ReturnStatus.valueOf(rs.getString("return_status"))
+            if (rs.next()) {
+                return new BorrowRecord(
+                    rs.getInt("record_id"),
+                    rs.getInt("book_id"),
+                    rs.getInt("member_id"),
+                    rs.getDate("borrow_date").toLocalDate(),
+                    rs.getDate("due_date").toLocalDate(),
+                    ReturnStatus.valueOf(rs.getString("return_status"))
                 );
-            
-            return foundBr;
+            }   
             
         } catch (SQLException e) {
-            System.out.println("Error finding records (by book)" + e.getMessage());
-            return null;
+            System.out.println("Error finding records (by id)" + e.getMessage());
         }
         
+        return null;
     }    
     
     public boolean updateBorrowingStatus(int recordId, ReturnStatus returnStatus) {

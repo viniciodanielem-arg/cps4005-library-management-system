@@ -6,7 +6,9 @@ package com.vini.cps4005.library.service;
 
 import com.vini.cps4005.library.dao.*;
 import com.vini.cps4005.library.model.*;
+
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  *
@@ -14,9 +16,15 @@ import java.time.LocalDate;
  */
 public class BorrowService {
     
-    private BorrowRecordDAO borrowDAO;
-    private MemberDAO memberDAO;
-    private BookDAO bookDAO;
+    private final BorrowRecordDAO borrowDAO;
+    private final MemberDAO memberDAO;
+    private final BookDAO bookDAO;
+
+    public BorrowService() {
+        this.borrowDAO = new BorrowRecordDAO();
+        this.memberDAO = new MemberDAO();
+        this.bookDAO = new BookDAO();
+    }
     
     
     
@@ -65,6 +73,54 @@ public class BorrowService {
         
         book.setAvailabilityStatus("Borrowed");
         return bookDAO.updateBook(book);
-    } 
+    }
+    
+    public boolean addBorrowRecord(
+            int bookId, 
+            int memberId, 
+            LocalDate borrowDate, 
+            ReturnStatus returnStatus) {
+        
+        if (borrowDate == null) return false;
+        if (returnStatus == null) return false;
+        
+        LocalDate dueDate = borrowDate.plusWeeks(4);
+        BorrowRecord b = new BorrowRecord(bookId, memberId, borrowDate, dueDate, returnStatus);
+        
+        return borrowDAO.addBorrowRecord(b);
+    }
+    
+    
+    public boolean updateBorrowingStatus(int recordId, ReturnStatus returnStatus) {
+        
+        BorrowRecord existing = borrowDAO.searchById(recordId);
+        
+        if (existing == null) return false;
+        if(returnStatus == null) returnStatus = existing.getReturnStatus();
+        
+        return borrowDAO.updateBorrowingStatus(recordId, returnStatus);
+    
+    }
+    
+    public boolean deleteBorrowRecord(int recordId) {
+        BorrowRecord existing = borrowDAO.searchById(recordId);
+        
+        if (existing == null) return false;
+        
+        return borrowDAO.deleteBorrowRecord(recordId);
+    }
+    
+    public List<BorrowRecord> getAllBorrowRecords() {
+        return borrowDAO.getAllBorrowRecords();
+    }
+    
+    public List<BorrowRecord> getMemberBorrowRecords(int memberId) {
+        return borrowDAO.searchbyMember(memberId);
+    }
+    
+    public List<BorrowRecord> getBookBorrowRecords(int bookId) {
+        return borrowDAO.searchByBook(bookId);
+    }
+    
     
 }
