@@ -12,7 +12,9 @@ import com.vini.cps4005.library.dao.*;
 import com.vini.cps4005.library.model.*;
 import com.vini.cps4005.library.service.*;
 import com.vini.cps4005.library.util.Validation;
+
 import java.util.Scanner;
+import java.time.LocalDate;
 
 public class LibraryConsoleUI {
     /*
@@ -455,10 +457,111 @@ public class LibraryConsoleUI {
     //BORROW RECORDS -----------------------
     
     public void manageBorrowingRecords() {
-        showBorrowingRecordsMenu();
+      
+        int choice = -1;
         
-        
+        do {
+            showBorrowingRecordsMenu();
+            
+            String input  = sc.nextLine();
+            if (!input.matches("\\d+")) {
+                System.out.println("Invalid input. Enter a number.");
+                continue;
+            }
+            
+            choice = Integer.parseInt(input);
+            
+            switch (choice) {
+                
+                case 1: //Borrow a book (1st person)
+                    System.out.println("Enter your member Id: ");
+                    String memberInput = sc.nextLine();
+                    int memId = validator.isValidID(memberInput);
+
+                    System.out.println("Enter chosen book Id: ");
+                    String bookIdInput = sc.nextLine();
+                    int bookId = validator.isValidID(bookIdInput);
+                    
+                    if (borrowRecordService.borrowBook(memId, bookId)) {
+                        System.out.println("Book borrowed successsfully");
+                    } else {
+                        System.out.println("Borrowing unsuccessful... Check Details + try again"); 
+                    }
+                    break;
+                
+                case 2: // Add a Borrowing Record
+                    System.out.println("Please enter the member Id: ");
+                    String memberInput2 = sc.nextLine();
+                    int memId2 = validator.isValidID(memberInput2);
+                    
+                    System.out.println("Please enter the book Id");
+                    String bookIdInput2 = sc.nextLine();
+                    int bookId2 = validator.isValidID(bookIdInput2);
+                                       
+                    System.out.println("Please enter the borrow date (dd-MM-yyyy)");
+                    String dateInput = sc.nextLine();
+                    LocalDate borrowDate = validator.parseDate(dateInput);
+                    if (borrowDate == null) {
+                        borrowDate = LocalDate.now();
+                        System.out.println("Defaulting to today's date...");
+                    }
+                    
+                    
+                    System.out.println("Please enter the return status (BORROWED, RETURNED, OVERDUE)");
+                    String statusInput = sc.nextLine();
+                    ReturnStatus returnStatus = validator.parseReturnStatus(statusInput);
+                    if (returnStatus == null) {
+                        returnStatus = ReturnStatus.RETURNED;
+                        System.out.println("Defaulting to RETURNED...");
+                    }
+                    
+                    if (borrowRecordService.addBorrowRecord(bookId2, memId2, borrowDate, returnStatus)) {
+                        System.out.println("Successfully added borrow record");
+                    } else {
+                        System.out.println("Adding borrow record - unsuccessful");
+                    }
+                    
+                    break;
+                    
+                case 3: // Update a borrowing record return status
+                    
+                    System.out.println("Enter member Id to update: ");
+                    int updateId = validator.isValidID(sc.nextLine());
+                    
+                    System.out.println("Enter new return Status (leave blank to keep the same)");
+                    String ReturnStatusInput = sc.nextLine();
+                    ReturnStatus updateStatus = validator.parseReturnStatus(ReturnStatusInput);
+                    
+                    if (borrowRecordService.updateBorrowingStatus(updateId, updateStatus)) {
+                        System.out.println("Successfully updated borrowing Status");
+                    } else {
+                        System.out.println("Failed to update borrowing status");
+                    }
+                    break;
+                    
+                case 4: // Delete borrowing record
+                    System.out.println("Enter Borrow record ID to delete: ");
+                    int deleteId = validator.isValidID(sc.nextLine());
+                    
+                    if (borrowRecordService.deleteBorrowRecord(deleteId)) {
+                        System.out.println("Borrow record deleted successfully");
+                    } else {
+                        System.out.println("delete failed");
+                    }
+                    break;
+                    
+                case 5:
+                    System.out.println("Returning to main menu...");
+                    break;
+                    
+                default:
+                    System.out.println("Invalid choice");
+                    
+            }
+        } while (choice != 5);
+            
     }
+    
     
     
     public void showBorrowingRecordsMenu() {
@@ -479,7 +582,56 @@ public class LibraryConsoleUI {
     //SEARCH RECORDS -----------------------
     
     public void searchRecords() {
-        showSearchRecordsMenu();
+        
+        int choice = -1;
+        
+        do {
+            showSearchRecordsMenu();
+            
+            String input  = sc.nextLine();
+            if (!input.matches("\\d+")) {
+                System.out.println("Invalid input. Enter a number.");
+                continue;
+            }
+            
+            choice = Integer.parseInt(input);
+            
+            switch (choice) {
+                case 1: //Display all borrowing records
+                    System.out.println("\n--- All Borrowing Records ---");
+                    for (BorrowRecord b : borrowRecordService.getAllBorrowRecords()) {
+                        System.out.println("\n" + b);
+                    }
+                    break;
+                    
+                case 2: //Display a member's borrowing history
+                    System.out.println("Please enter a member Id: ");
+                    int memId = validator.isValidID(sc.nextLine());
+                    
+                    System.out.println("Member " + memId + "'s borrowing history:");
+                    for (BorrowRecord bR : borrowRecordService.getMemberBorrowRecords(memId)) {
+                        System.out.println("\n" + bR);
+                    }
+                    break;
+
+                case 3: //Display a book's borrowing history
+                    System.out.println("Please enter a member Id: ");
+                    int bookId = validator.isValidID(sc.nextLine());
+                    
+                    System.out.println("Member " + bookId + "'s borrowing history:");
+                    for (BorrowRecord bRec : borrowRecordService.getBookBorrowRecords(bookId)) {
+                        System.out.println("\n" + bRec);
+                    }
+                    break;
+                case 4:
+                    break;
+                    
+                default:
+                    System.out.println("Invalid Choice");
+            }
+        } while (choice != 4);
+        
+        
         
     }
     
