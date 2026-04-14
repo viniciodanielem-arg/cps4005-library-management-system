@@ -47,15 +47,14 @@ public class MemberDAO {
     }
     
     public boolean addMember(Member member) {
-        String sql = "INSERT INTO members (member_id, member_name, email, membership_type) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO members (member_name, email, membership_type) VALUES (?, ?, ?)";
         
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setInt(1, member.getMemberId());
-            pstmt.setString(2, member.getName());
-            pstmt.setString(3, member.getEmail());
-            pstmt.setString(4, member.getMembershipType().name());
+            pstmt.setString(1, member.getName());
+            pstmt.setString(2, member.getEmail());
+            pstmt.setString(3, member.getMembershipType().name());
             
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
