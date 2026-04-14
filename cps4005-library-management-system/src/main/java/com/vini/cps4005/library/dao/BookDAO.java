@@ -190,6 +190,13 @@ public class BookDAO {
     public boolean deleteBook(int bookId) {
         String sql = "DELETE FROM books WHERE book_id = ?";
         
+        BorrowRecordDAO borrowDAO = new BorrowRecordDAO();
+        
+        if (borrowDAO.memberHasActiveLoans(bookId)) {
+            System.out.println("Cannot delete member with active loans.");
+            return false;
+        }
+        
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             

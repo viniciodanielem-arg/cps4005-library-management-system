@@ -165,6 +165,13 @@ public class MemberDAO {
     public boolean deleteMember(int memberId) {
         String sql = "DELETE FROM members WHERE member_id = ?";
 
+        BorrowRecordDAO borrowDAO = new BorrowRecordDAO();
+        
+        if (borrowDAO.memberHasActiveLoans(memberId)) {
+            System.out.println("Cannot delete member with active loans.");
+            return false;
+        }
+        
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -180,7 +187,7 @@ public class MemberDAO {
     }
 
     public int getActiveBorrowCount(int memberId) {
-        String sql = "SELECT COUNT(*) AS total FROM borrow_records WHERE member_id = ? AND return_status = 'Borrowed'";
+        String sql = "SELECT COUNT(*) AS total FROM borrow_records WHERE member_id = ? AND return_status = 'BORROWED'";
         
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {

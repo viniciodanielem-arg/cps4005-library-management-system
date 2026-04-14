@@ -9,7 +9,9 @@ package com.vini.cps4005.library.service;
  * @author Daniele
  */
 import com.vini.cps4005.library.dao.BookDAO;
+import com.vini.cps4005.library.dao.BorrowRecordDAO;
 import com.vini.cps4005.library.model.Book;
+import com.vini.cps4005.library.model.BookStatus;
 
 import java.util.List;
 
@@ -28,7 +30,7 @@ public class BookService {
         if (author == null || author.isBlank()) return false;
         if (category == null || category.isBlank()) return false;
         
-        Book book = new Book(title, author, category, "Available");
+        Book book = new Book(title, author, category, BookStatus.AVAILABLE);
         
         return bookDAO.addBook(book);
         
@@ -83,6 +85,18 @@ public class BookService {
     
     
     public boolean deleteBook(int id) {
+        Book existing = bookDAO.getBookById(id);
+        if (existing == null) {
+            System.out.println("Book not found.");
+            return false;
+        }
+
+        BorrowRecordDAO borrowDAO = new BorrowRecordDAO();
+        if (borrowDAO.bookHasActiveLoans(id)) {
+            System.out.println("Cannot delete book with active loans.");
+            return false;
+        }
+
         return bookDAO.deleteBook(id);
     }
     

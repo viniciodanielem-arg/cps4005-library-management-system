@@ -15,6 +15,7 @@ import com.vini.cps4005.library.util.DatabaseConnection;
 import com.vini.cps4005.library.model.BorrowRecord;
 import com.vini.cps4005.library.model.ReturnStatus;
 
+
 public class BorrowRecordDAO {
     /*
     Borrowing Management
@@ -27,7 +28,7 @@ public class BorrowRecordDAO {
     public void createTable() {
         String sql = """
                     CREATE TABLE IF NOT EXISTS borrow_records (
-                        record_id INTEGER PRIMARY KEY,
+                        record_id INTEGER PRIMARY KEY AUTOINCREMENT,
                         book_id INTEGER NOT NULL,
                         member_id INTEGER NOT NULL,
                         borrow_date DATE NOT NULL,
@@ -51,6 +52,7 @@ public class BorrowRecordDAO {
             System.out.println("Error adding borrow record: missing required values.");
             return false;
         }
+        
         
         String sql = "INSERT INTO borrow_records (book_id, member_id, borrow_date, due_date, return_status) VALUES (?, ?, ?, ?, ?)";
     
@@ -193,7 +195,7 @@ public class BorrowRecordDAO {
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setString(1, returnStatus.toString());
+            pstmt.setString(1, returnStatus.name());
             pstmt.setInt(2, recordId);
             
             int rowsAffected = pstmt.executeUpdate();
@@ -285,5 +287,82 @@ public class BorrowRecordDAO {
         }
 
         return records;
+    }
+    
+    public boolean hasActiveBorrowRecord(int bookId, int memberId) {
+        String sql = """
+            SELECT COUNT(*) 
+            FROM borrow_records
+            WHERE book_id = ?
+            AND member_id = ?
+            AND return_status IN ('BORROWED', 'OVERDUE')
+            """;
+
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, bookId);
+            pstmt.setInt(2, memberId);
+        
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error checking active borrow record: " + e.getMessage());
+        }
+
+        return false;
+    }
+    
+    public boolean memberHasActiveLoans(int memberId) {
+        String sql = """
+            SELECT COUNT(*)
+            FROM borrow_records
+            WHERE member_id = ?
+            AND return_status IN ('BORROWED', 'OVERDUE')
+            """;
+
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, memberId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error checking member active loans: " + e.getMessage());
+        }
+
+        return false;
+    }
+    
+    public boolean bookHasActiveLoans(int bookId) {
+        String sql = """
+            SELECT COUNT(*)
+            FROM borrow_records
+            WHERE book_id = ?
+            AND return_status IN ('BORROWED', 'OVERDUE')
+            """;
+
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, bookId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error checking book active loans: " + e.getMessage());
+        }
+
+        return false;
     }
 }

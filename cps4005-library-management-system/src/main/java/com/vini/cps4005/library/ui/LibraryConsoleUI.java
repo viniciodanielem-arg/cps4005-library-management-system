@@ -12,6 +12,7 @@ import com.vini.cps4005.library.dao.*;
 import com.vini.cps4005.library.model.*;
 import com.vini.cps4005.library.service.*;
 import com.vini.cps4005.library.util.Validation;
+import com.vini.cps4005.library.model.BookStatus;
 
 import java.util.Scanner;
 import java.time.LocalDate;
@@ -48,9 +49,9 @@ public class LibraryConsoleUI {
         borrowRecordDAO.createTable();
         
         //inserting sample books:
-        Book book1 = new Book("Introduction to Java", "John Smith", "Programming", "Available");
-        Book book2 = new Book("Database Systems", "Maria Garcia", "Computer Science", "Borrowed");
-        Book book3 = new Book("Software Engineering Principles", "Alan Brown", "Engineering", "Available");
+        Book book1 = new Book("Introduction to Java", "John Smith", "Programming", BookStatus.AVAILABLE);
+        Book book2 = new Book("Database Systems", "Maria Garcia", "Computer Science", BookStatus.BORROWED);
+        Book book3 = new Book("Software Engineering Principles", "Alan Brown", "Engineering", BookStatus.AVAILABLE);
         
         if (bookDAO.isTableEmpty()) {
             bookDAO.addBook(book1);

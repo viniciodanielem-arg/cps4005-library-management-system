@@ -4,10 +4,12 @@
  */
 package com.vini.cps4005.library.service;
 
+
 import com.vini.cps4005.library.dao.BookDAO;
 import com.vini.cps4005.library.dao.BorrowRecordDAO;
 import com.vini.cps4005.library.dao.MemberDAO;
 import com.vini.cps4005.library.model.Book;
+import com.vini.cps4005.library.model.BookStatus;
 import com.vini.cps4005.library.model.BorrowRecord;
 import com.vini.cps4005.library.model.Member;
 import com.vini.cps4005.library.model.ReturnStatus;
@@ -18,6 +20,7 @@ import java.util.List;
  *
  * @author Daniele
  */
+
 public class BorrowService {
 
     private final BorrowRecordDAO borrowDAO;
@@ -44,7 +47,12 @@ public class BorrowService {
             return false;
         }
 
-        if (!"Available".equalsIgnoreCase(book.getAvailabilityStatus())) {
+        if (borrowDAO.hasActiveBorrowRecord(bookId, memberId)) {
+            System.out.println("This member already has an active borrow record for this book.");
+            return false;
+        }
+
+        if (!BookStatus.AVAILABLE.equalsIgnoreCase(book.getAvailabilityStatus())) {
             System.out.println("Book is unavailable.");
             return false;
         }
@@ -76,7 +84,7 @@ public class BorrowService {
             return false;
         }
 
-        book.setAvailabilityStatus("Borrowed");
+        book.setAvailabilityStatus(BookStatus.BORROWED);
         return bookDAO.updateBook(book);
     }
 
@@ -103,8 +111,13 @@ public class BorrowService {
             return false;
         }
 
+        if (borrowDAO.hasActiveBorrowRecord(bookId, memberId)) {
+            System.out.println("This member already has an active borrow record for this book.");
+            return false;
+        }
+
         if ((returnStatus == ReturnStatus.BORROWED || returnStatus == ReturnStatus.OVERDUE)
-                && !"Available".equalsIgnoreCase(book.getAvailabilityStatus())) {
+                && !BookStatus.AVAILABLE.equalsIgnoreCase(book.getAvailabilityStatus())) {
             System.out.println("Book is not currently available.");
             return false;
         }
@@ -130,9 +143,9 @@ public class BorrowService {
         }
 
         if (returnStatus == ReturnStatus.RETURNED) {
-            book.setAvailabilityStatus("Available");
+            book.setAvailabilityStatus(BookStatus.AVAILABLE);
         } else {
-            book.setAvailabilityStatus("Borrowed");
+            book.setAvailabilityStatus(BookStatus.BORROWED);
         }
 
         bookDAO.updateBook(book);
@@ -159,9 +172,9 @@ public class BorrowService {
         Book book = bookDAO.getBookById(existing.getBookId());
         if (book != null) {
             if (returnStatus == ReturnStatus.RETURNED) {
-                book.setAvailabilityStatus("Available");
+                book.setAvailabilityStatus(BookStatus.AVAILABLE);
             } else {
-                book.setAvailabilityStatus("Borrowed");
+                book.setAvailabilityStatus(BookStatus.BORROWED);
             }
             bookDAO.updateBook(book);
         }
@@ -191,7 +204,7 @@ public class BorrowService {
     public List<BorrowRecord> getBookBorrowRecords(int bookId) {
         return borrowDAO.searchByBook(bookId);
     }
-    
+
     public int updateOverdueRecords() {
         return borrowDAO.markOverdueRecords();
     }
