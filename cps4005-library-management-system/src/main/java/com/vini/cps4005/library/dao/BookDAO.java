@@ -49,9 +49,9 @@ public class BookDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setString(1, book.getTitle());
-            pstmt.setString(1, book.getAuthor());
-            pstmt.setString(1, book.getCategory());
-            pstmt.setString(1, book.getAvailabilityStatus());
+            pstmt.setString(2, book.getAuthor());
+            pstmt.setString(3, book.getCategory());
+            pstmt.setString(4, book.getAvailabilityStatus());
             
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
@@ -166,7 +166,7 @@ public class BookDAO {
     }
     
     public boolean updateBook(Book book) {
-        String sql = "UPDATE books SET title = ?, author = ?, category = ?, , availability_status = ? WHERE book_id = ?";
+        String sql = "UPDATE books SET title = ?, author = ?, category = ?, availability_status = ? WHERE book_id = ?";
         
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
