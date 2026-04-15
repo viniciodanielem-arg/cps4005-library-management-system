@@ -11,32 +11,29 @@ package com.vini.cps4005.library.ui;
 
 import com.vini.cps4005.library.model.Book;
 import com.vini.cps4005.library.service.BookService;
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.util.List;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
 
 public class BooksPanel extends JPanel {
 
     private final BookService bookService = new BookService();
 
+    private final JTextField idField = new JTextField();
     private final JTextField titleField = new JTextField();
     private final JTextField authorField = new JTextField();
     private final JTextField categoryField = new JTextField();
-    private final JTextField idField = new JTextField();
 
-    private final JTextArea outputArea = new JTextArea();
+    private final DefaultTableModel tableModel;
+    private final JTable table;
 
     public BooksPanel() {
         setLayout(new BorderLayout());
 
-        JPanel formPanel = new JPanel(new GridLayout(5, 2, 5, 5));
+        // ===== FORM =====
+        JPanel formPanel = new JPanel(new GridLayout(4, 2, 5, 5));
         formPanel.add(new JLabel("Book ID:"));
         formPanel.add(idField);
         formPanel.add(new JLabel("Title:"));
@@ -46,33 +43,62 @@ public class BooksPanel extends JPanel {
         formPanel.add(new JLabel("Category:"));
         formPanel.add(categoryField);
 
+        // ===== BUTTONS =====
         JButton addButton = new JButton("Add");
-        JButton showAllButton = new JButton("Show All");
         JButton updateButton = new JButton("Update");
         JButton deleteButton = new JButton("Delete");
-        JButton searchTitleButton = new JButton("Search by Title");
-        JButton searchAuthorButton = new JButton("Search by Author");
+        JButton showAllButton = new JButton("Show All");
+        JButton searchTitleButton = new JButton("Search Title");
+        JButton searchAuthorButton = new JButton("Search Author");
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(addButton);
-        buttonPanel.add(showAllButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(deleteButton);
+        buttonPanel.add(showAllButton);
         buttonPanel.add(searchTitleButton);
         buttonPanel.add(searchAuthorButton);
 
-        outputArea.setEditable(false);
+        // ===== TABLE =====
+        tableModel = new DefaultTableModel();
+        tableModel.setColumnIdentifiers(new String[]{
+                "ID", "Title", "Author", "Category", "Status"
+        });
 
+        table = new JTable(tableModel);
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        // ===== LAYOUT =====
         add(formPanel, BorderLayout.NORTH);
         add(buttonPanel, BorderLayout.CENTER);
-        add(new JScrollPane(outputArea), BorderLayout.SOUTH);
+        add(scrollPane, BorderLayout.SOUTH);
 
+        // ===== BUTTON ACTIONS =====
         addButton.addActionListener(e -> addBook());
-        showAllButton.addActionListener(e -> showAllBooks());
         updateButton.addActionListener(e -> updateBook());
         deleteButton.addActionListener(e -> deleteBook());
+        showAllButton.addActionListener(e -> loadTable(bookService.getAllBooks()));
         searchTitleButton.addActionListener(e -> searchByTitle());
         searchAuthorButton.addActionListener(e -> searchByAuthor());
+
+        // Load initial data
+        loadTable(bookService.getAllBooks());
+    }
+
+    // ===== CORE METHODS =====
+
+    private void loadTable(List<Book> books) {
+        tableModel.setRowCount(0); // clear table
+
+        for (Book book : books) {
+            tableModel.addRow(new Object[]{
+                    book.getBookId(),
+                    book.getTitle(),
+                    book.getAuthor(),
+                    book.getCategory(),
+                    book.getAvailabilityStatus()
+            });
+        }
     }
 
     private void addBook() {
@@ -85,24 +111,16 @@ public class BooksPanel extends JPanel {
         if (success) {
             JOptionPane.showMessageDialog(this, "Book added successfully.");
             clearFields();
-            showAllBooks();
+            loadTable(bookService.getAllBooks());
         } else {
             JOptionPane.showMessageDialog(this, "Failed to add book.");
-        }
-    }
-
-    private void showAllBooks() {
-        List<Book> books = bookService.getAllBooks();
-        outputArea.setText("");
-
-        for (Book book : books) {
-            outputArea.append(book + "\n");
         }
     }
 
     private void updateBook() {
         try {
             int id = Integer.parseInt(idField.getText().trim());
+
             String title = titleField.getText().trim();
             String author = authorField.getText().trim();
             String category = categoryField.getText().trim();
@@ -112,12 +130,13 @@ public class BooksPanel extends JPanel {
             if (success) {
                 JOptionPane.showMessageDialog(this, "Book updated successfully.");
                 clearFields();
-                showAllBooks();
+                loadTable(bookService.getAllBooks());
             } else {
                 JOptionPane.showMessageDialog(this, "Update failed.");
             }
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Enter a valid numeric book ID.");
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Enter a valid numeric ID.");
         }
     }
 
@@ -127,8 +146,8 @@ public class BooksPanel extends JPanel {
 
             int confirm = JOptionPane.showConfirmDialog(
                     this,
-                    "Are you sure you want to delete book " + id + "?",
-                    "Confirm Delete",
+                    "Delete book " + id + "?",
+                    "Confirm",
                     JOptionPane.YES_NO_OPTION
             );
 
@@ -136,36 +155,27 @@ public class BooksPanel extends JPanel {
                 boolean success = bookService.deleteBook(id);
 
                 if (success) {
-                    JOptionPane.showMessageDialog(this, "Book deleted successfully.");
+                    JOptionPane.showMessageDialog(this, "Book deleted.");
                     clearFields();
-                    showAllBooks();
+                    loadTable(bookService.getAllBooks());
                 } else {
                     JOptionPane.showMessageDialog(this, "Delete failed.");
                 }
             }
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Enter a valid numeric book ID.");
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Enter a valid numeric ID.");
         }
     }
 
     private void searchByTitle() {
         String title = titleField.getText().trim();
-        List<Book> books = bookService.searchByTitle(title);
-
-        outputArea.setText("");
-        for (Book book : books) {
-            outputArea.append(book + "\n");
-        }
+        loadTable(bookService.searchByTitle(title));
     }
 
     private void searchByAuthor() {
         String author = authorField.getText().trim();
-        List<Book> books = bookService.searchByAuthor(author);
-
-        outputArea.setText("");
-        for (Book book : books) {
-            outputArea.append(book + "\n");
-        }
+        loadTable(bookService.searchByAuthor(author));
     }
 
     private void clearFields() {
