@@ -189,22 +189,14 @@ public class BookDAO {
     
     public boolean deleteBook(int bookId) {
         String sql = "DELETE FROM books WHERE book_id = ?";
-        
-        BorrowRecordDAO borrowDAO = new BorrowRecordDAO();
-        
-        if (borrowDAO.memberHasActiveLoans(bookId)) {
-            System.out.println("Cannot delete member with active loans.");
-            return false;
-        }
-        
+
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
             pstmt.setInt(1, bookId);
-            
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
-            
+
         } catch (SQLException e) {
             System.out.println("Error deleting book: " + e.getMessage());
             return false;
@@ -229,5 +221,56 @@ public class BookDAO {
         return true;
     }
     
+    public List<Book> searchBooksByCategory(String category) {
+        List<Book> books = new ArrayList<>();
+        String sql = "SELECT * FROM books WHERE category LIKE ?";
+
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, "%" + category + "%");
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                books.add(new Book(
+                        rs.getInt("book_id"),
+                        rs.getString("title"),
+                        rs.getString("author"),
+                        rs.getString("category"),
+                        rs.getString("availability_status")
+                ));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error searching books by category: " + e.getMessage());
+        }
+
+        return books;
+    }
     
+    public List<Book> getAllBooksSortedByTitle(boolean ascending) {
+        List<Book> books = new ArrayList<>();
+        String order = ascending ? "ASC" : "DESC";
+        String sql = "SELECT * FROM books ORDER BY title " + order;
+
+        try (Connection conn = DatabaseConnection.connect();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                books.add(new Book(
+                        rs.getInt("book_id"),
+                        rs.getString("title"),
+                        rs.getString("author"),
+                        rs.getString("category"),
+                        rs.getString("availability_status")
+                ));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error sorting books: " + e.getMessage());
+        }
+
+        return books;
+    }
 }

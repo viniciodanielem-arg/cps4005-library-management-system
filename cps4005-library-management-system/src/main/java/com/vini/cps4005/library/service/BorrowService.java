@@ -52,7 +52,7 @@ public class BorrowService {
             return false;
         }
 
-        if (!BookStatus.AVAILABLE.equalsIgnoreCase(book.getAvailabilityStatus())) {
+        if (!book.getAvailabilityStatus().equalsIgnoreCase(BookStatus.AVAILABLE)) {
             System.out.println("Book is unavailable.");
             return false;
         }
@@ -198,7 +198,7 @@ public class BorrowService {
     }
 
     public List<BorrowRecord> getMemberBorrowRecords(int memberId) {
-        return borrowDAO.searchbyMember(memberId);
+        return borrowDAO.searchByMember(memberId);
     }
 
     public List<BorrowRecord> getBookBorrowRecords(int bookId) {
@@ -211,5 +211,13 @@ public class BorrowService {
 
     public List<BorrowRecord> getOverdueRecords() {
         return borrowDAO.getOverdueRecords();
+    }
+    
+    public List<BorrowRecord> getBorrowRecordsByStatus(ReturnStatus status) {
+        return borrowDAO.getBorrowRecordsByStatus(status);
+    }
+    
+    public List<BorrowRecord> getBorrowRecordsByDateRange(LocalDate startDate, LocalDate endDate) {
+        return borrowDAO.getBorrowRecordsByDateRange(startDate, endDate);
     }
 }

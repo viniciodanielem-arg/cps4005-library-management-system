@@ -150,7 +150,7 @@ public class MemberDAO {
 
             pstmt.setString(1, member.getName());
             pstmt.setString(2, member.getEmail());
-            pstmt.setString(3, member.getMembershipType().toString());
+            pstmt.setString(3, member.getMembershipType().name());
             pstmt.setInt(4, member.getMemberId());
 
             int rowsAffected = pstmt.executeUpdate();
@@ -187,7 +187,7 @@ public class MemberDAO {
     }
 
     public int getActiveBorrowCount(int memberId) {
-        String sql = "SELECT COUNT(*) AS total FROM borrow_records WHERE member_id = ? AND return_status = 'BORROWED'";
+        String sql = "SELECT COUNT(*) AS total FROM borrow_records WHERE member_id = ? AND return_status IN ('BORROWED', 'OVERDUE')";
         
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {

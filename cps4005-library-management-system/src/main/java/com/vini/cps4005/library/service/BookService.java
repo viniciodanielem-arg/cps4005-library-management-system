@@ -100,5 +100,13 @@ public class BookService {
         return bookDAO.deleteBook(id);
     }
     
+    public List<Book> searchByCategory(String category) {
+        return bookDAO.searchBooksByCategory(category);
+    }
+    
+    public List<Book> getAllBooksSortedByTitle(boolean ascending) {
+       return bookDAO.getAllBooksSortedByTitle(ascending);
+    }
+    
     
 }

@@ -4,11 +4,10 @@
  */
 package com.vini.cps4005.library;
 
-import com.vini.cps4005.library.ui.LibraryConsoleUI;
+import com.vini.cps4005.library.ui.LibraryGUI;
 
 public class Main {
     public static void main(String[] args) {
-        LibraryConsoleUI ui = new LibraryConsoleUI();
-        ui.start();
+        LibraryGUI.launch();
     }
 }

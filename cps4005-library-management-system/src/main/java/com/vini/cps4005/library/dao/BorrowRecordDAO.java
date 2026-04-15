@@ -14,6 +14,7 @@ import java.util.List;
 import com.vini.cps4005.library.util.DatabaseConnection;
 import com.vini.cps4005.library.model.BorrowRecord;
 import com.vini.cps4005.library.model.ReturnStatus;
+import java.time.LocalDate;
 
 
 public class BorrowRecordDAO {
@@ -103,7 +104,7 @@ public class BorrowRecordDAO {
         return records;
     }
     
-    public List<BorrowRecord> searchbyMember(int memberId) {
+    public List<BorrowRecord> searchByMember(int memberId) {
         String sql = "SELECT * FROM borrow_records WHERE member_id = ? ORDER BY borrow_date DESC";
         List<BorrowRecord> memberRecords = new ArrayList<>();
         
@@ -364,5 +365,66 @@ public class BorrowRecordDAO {
         }
 
         return false;
+    }
+    
+    public List<BorrowRecord> getBorrowRecordsByStatus(ReturnStatus status) {
+        List<BorrowRecord> records = new ArrayList<>();
+        String sql = "SELECT * FROM borrow_records WHERE return_status = ? ORDER BY borrow_date DESC";
+
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, status.name());
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                records.add(new BorrowRecord(
+                        rs.getInt("record_id"),
+                        rs.getInt("book_id"),
+                        rs.getInt("member_id"),
+                        rs.getDate("borrow_date").toLocalDate(),
+                        rs.getDate("due_date").toLocalDate(),
+                        ReturnStatus.valueOf(rs.getString("return_status"))
+                ));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error filtering borrow records by status: " + e.getMessage());
+        }
+
+        return records;
+    }
+    
+    public List<BorrowRecord> getBorrowRecordsByDateRange(LocalDate startDate, LocalDate endDate) {
+        List<BorrowRecord> records = new ArrayList<>();
+        String sql = """
+            SELECT * FROM borrow_records
+            WHERE borrow_date BETWEEN ? AND ?
+            ORDER BY borrow_date DESC
+            """;
+
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setDate(1, Date.valueOf(startDate));
+            pstmt.setDate(2, Date.valueOf(endDate));
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                records.add(new BorrowRecord(
+                        rs.getInt("record_id"),
+                        rs.getInt("book_id"),
+                        rs.getInt("member_id"),
+                        rs.getDate("borrow_date").toLocalDate(),
+                        rs.getDate("due_date").toLocalDate(),
+                        ReturnStatus.valueOf(rs.getString("return_status"))
+                ));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error filtering borrow records by date range: " + e.getMessage());
+        }
+
+        return records;
     }
 }
