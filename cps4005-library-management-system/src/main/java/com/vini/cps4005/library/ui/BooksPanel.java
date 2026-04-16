@@ -17,6 +17,9 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 import java.util.function.Supplier;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class BooksPanel extends JPanel {
 
@@ -37,6 +40,7 @@ public class BooksPanel extends JPanel {
     private final JButton sortAscButton = new JButton("Sort A-Z");
     private final JButton sortDescButton = new JButton("Sort Z-A");
     private final JButton searchCombinedButton = new JButton("Advanced Search");
+    private final JButton exportCsvButton = new JButton("Export CSV");
 
     private final JLabel statusLabel = new JLabel(" ");
 
@@ -67,6 +71,7 @@ public class BooksPanel extends JPanel {
         buttonPanel.add(sortAscButton);
         buttonPanel.add(sortDescButton);
         buttonPanel.add(searchCombinedButton);
+        buttonPanel.add(exportCsvButton);
 
         JPanel topContainer = new JPanel(new BorderLayout());
         topContainer.add(formPanel, BorderLayout.NORTH);
@@ -115,6 +120,8 @@ public class BooksPanel extends JPanel {
         sortDescButton.addActionListener(e ->
                 loadTableAsync(() -> bookService.getAllBooksSortedByTitle(false), "Sorting Z-A...")
         );
+        
+        exportCsvButton.addActionListener(e -> exportTableToCSV());
         
         searchCombinedButton.addActionListener(e ->
             loadTableAsync(
@@ -193,6 +200,7 @@ public class BooksPanel extends JPanel {
         sortAscButton.setEnabled(enabled);
         sortDescButton.setEnabled(enabled);
         searchCombinedButton.setEnabled(enabled);
+        exportCsvButton.setEnabled(enabled);
     }
 
     private void addBook() {
@@ -244,6 +252,53 @@ public class BooksPanel extends JPanel {
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Invalid ID.");
+        }
+    }
+    
+    private void exportTableToCSV() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save CSV File");
+
+        int userSelection = fileChooser.showSaveDialog(this);
+
+        if (userSelection != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File file = fileChooser.getSelectedFile();
+
+        if (!file.getName().toLowerCase().endsWith(".csv")) {
+            file = new File(file.getAbsolutePath() + ".csv");
+        }
+
+        try (FileWriter writer = new FileWriter(file)) {
+            for (int i = 0; i < tableModel.getColumnCount(); i++) {
+                writer.write(tableModel.getColumnName(i));
+                if (i < tableModel.getColumnCount() - 1) {
+                    writer.write(",");
+                }
+            }
+            writer.write("\n");
+
+            for (int row = 0; row < tableModel.getRowCount(); row++) {
+                for (int col = 0; col < tableModel.getColumnCount(); col++) {
+                    Object value = tableModel.getValueAt(row, col);
+                    String text = value == null ? "" : value.toString();
+
+                    text = text.replace("\"", "\"\"");
+                    writer.write("\"" + text + "\"");
+
+                    if (col < tableModel.getColumnCount() - 1) {
+                        writer.write(",");
+                    }
+                }
+                writer.write("\n");
+            }
+
+            JOptionPane.showMessageDialog(this, "CSV exported successfully.");
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Failed to export CSV.");
         }
     }
 

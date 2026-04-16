@@ -20,6 +20,7 @@ import java.awt.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Supplier;
+import javax.swing.table.DefaultTableCellRenderer;
 
 public class BorrowRecordsPanel extends JPanel {
 
@@ -30,7 +31,7 @@ public class BorrowRecordsPanel extends JPanel {
     private final JTextField bookIdField = new JTextField();
     private final JTextField memberIdField = new JTextField();
     private final JTextField borrowDateField = new JTextField();
-    private final JTextField endDateField = new JTextField();
+    private final JTextField FilterEndDateField = new JTextField();
     private final JTextField returnStatusField = new JTextField();
 
     private final JButton borrowBookButton = new JButton("Borrow Book");
@@ -63,7 +64,7 @@ public class BorrowRecordsPanel extends JPanel {
         formPanel.add(new JLabel("Borrow Date (dd-MM-yyyy):"));
         formPanel.add(borrowDateField);
         formPanel.add(new JLabel("End Date (dd-MM-yyyy):"));
-        formPanel.add(endDateField);
+        formPanel.add(FilterEndDateField);
         formPanel.add(new JLabel("Return Status:"));
         formPanel.add(returnStatusField);
 
@@ -93,6 +94,29 @@ public class BorrowRecordsPanel extends JPanel {
         table = new JTable(tableModel);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.setRowHeight(22);
+        
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(
+                    JTable table, Object value, boolean isSelected,
+                    boolean hasFocus, int row, int column) {
+
+                Component c = super.getTableCellRendererComponent(
+                        table, value, isSelected, hasFocus, row, column);
+
+                Object statusValue = table.getModel().getValueAt(row, 5);
+
+                if (!isSelected) {
+                    if (statusValue != null && statusValue.toString().equals("OVERDUE")) {
+                        c.setForeground(Color.RED);
+                    } else {
+                        c.setForeground(Color.BLACK);
+                    }
+                }
+
+                return c;
+            }
+        });
 
         JScrollPane scrollPane = new JScrollPane(table);
 
@@ -344,7 +368,7 @@ public class BorrowRecordsPanel extends JPanel {
 
     private void filterByDateRange() {
         LocalDate start = validator.parseDate(borrowDateField.getText().trim());
-        LocalDate end = validator.parseDate(endDateField.getText().trim());
+        LocalDate end = validator.parseDate(FilterEndDateField.getText().trim());
 
         if (start == null || end == null) {
             JOptionPane.showMessageDialog(this, "Dates must be in dd-MM-yyyy format.");
@@ -401,7 +425,7 @@ public class BorrowRecordsPanel extends JPanel {
         bookIdField.setText("");
         memberIdField.setText("");
         borrowDateField.setText("");
-        endDateField.setText("");
+        FilterEndDateField.setText("");
         returnStatusField.setText("");
         table.clearSelection();
         statusLabel.setText(" ");
