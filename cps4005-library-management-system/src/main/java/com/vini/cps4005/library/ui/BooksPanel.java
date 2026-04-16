@@ -16,6 +16,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class BooksPanel extends JPanel {
 
@@ -26,13 +27,24 @@ public class BooksPanel extends JPanel {
     private final JTextField authorField = new JTextField();
     private final JTextField categoryField = new JTextField();
 
+    private final JButton addButton = new JButton("Add");
+    private final JButton updateButton = new JButton("Update");
+    private final JButton deleteButton = new JButton("Delete");
+    private final JButton showAllButton = new JButton("Show All");
+    private final JButton searchTitleButton = new JButton("Search Title");
+    private final JButton searchAuthorButton = new JButton("Search Author");
+    private final JButton searchCategoryButton = new JButton("Search Category");
+    private final JButton sortAscButton = new JButton("Sort A-Z");
+    private final JButton sortDescButton = new JButton("Sort Z-A");
+
+    private final JLabel statusLabel = new JLabel(" ");
+
     private final DefaultTableModel tableModel;
     private final JTable table;
 
     public BooksPanel() {
         setLayout(new BorderLayout());
 
-        // ===== FORM =====
         JPanel formPanel = new JPanel(new GridLayout(4, 2, 5, 5));
         formPanel.add(new JLabel("Book ID:"));
         formPanel.add(idField);
@@ -42,19 +54,6 @@ public class BooksPanel extends JPanel {
         formPanel.add(authorField);
         formPanel.add(new JLabel("Category:"));
         formPanel.add(categoryField);
-
-        // ===== BUTTONS =====
-        JButton addButton = new JButton("Add");
-        JButton updateButton = new JButton("Update");
-        JButton deleteButton = new JButton("Delete");
-        JButton showAllButton = new JButton("Show All");
-        JButton searchTitleButton = new JButton("Search Title");
-        JButton searchAuthorButton = new JButton("Search Author");
-
-        // NEW
-        JButton searchCategoryButton = new JButton("Search Category");
-        JButton sortAscButton = new JButton("Sort A-Z");
-        JButton sortDescButton = new JButton("Sort Z-A");
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(addButton);
@@ -67,30 +66,54 @@ public class BooksPanel extends JPanel {
         buttonPanel.add(sortAscButton);
         buttonPanel.add(sortDescButton);
 
-        // ===== TABLE =====
+        JPanel topContainer = new JPanel(new BorderLayout());
+        topContainer.add(formPanel, BorderLayout.NORTH);
+        topContainer.add(buttonPanel, BorderLayout.SOUTH);
+
         tableModel = new DefaultTableModel(
                 new String[]{"ID", "Title", "Author", "Category", "Status"}, 0
-        );
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
 
         table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
 
-        add(formPanel, BorderLayout.NORTH);
-        add(buttonPanel, BorderLayout.CENTER);
-        add(scrollPane, BorderLayout.SOUTH);
+        add(topContainer, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
+        add(statusLabel, BorderLayout.SOUTH);
 
-        // ===== ACTIONS =====
         addButton.addActionListener(e -> addBook());
         updateButton.addActionListener(e -> updateBook());
         deleteButton.addActionListener(e -> deleteBook());
-        showAllButton.addActionListener(e -> loadTable(bookService.getAllBooks()));
-        searchTitleButton.addActionListener(e -> loadTable(bookService.searchByTitle(titleField.getText().trim())));
-        searchAuthorButton.addActionListener(e -> loadTable(bookService.searchByAuthor(authorField.getText().trim())));
-        searchCategoryButton.addActionListener(e -> loadTable(bookService.searchByCategory(categoryField.getText().trim())));
-        sortAscButton.addActionListener(e -> loadTable(bookService.getAllBooksSortedByTitle(true)));
-        sortDescButton.addActionListener(e -> loadTable(bookService.getAllBooksSortedByTitle(false)));
 
-        // Row click autofill
+        showAllButton.addActionListener(e ->
+                loadTableAsync(() -> bookService.getAllBooks(), "Loading all books...")
+        );
+
+        searchTitleButton.addActionListener(e ->
+                loadTableAsync(() -> bookService.searchByTitle(titleField.getText().trim()), "Searching by title...")
+        );
+
+        searchAuthorButton.addActionListener(e ->
+                loadTableAsync(() -> bookService.searchByAuthor(authorField.getText().trim()), "Searching by author...")
+        );
+
+        searchCategoryButton.addActionListener(e ->
+                loadTableAsync(() -> bookService.searchByCategory(categoryField.getText().trim()), "Searching by category...")
+        );
+
+        sortAscButton.addActionListener(e ->
+                loadTableAsync(() -> bookService.getAllBooksSortedByTitle(true), "Sorting A-Z...")
+        );
+
+        sortDescButton.addActionListener(e ->
+                loadTableAsync(() -> bookService.getAllBooksSortedByTitle(false), "Sorting Z-A...")
+        );
+
         table.getSelectionModel().addListSelectionListener(e -> {
             int row = table.getSelectedRow();
             if (row >= 0) {
@@ -101,7 +124,7 @@ public class BooksPanel extends JPanel {
             }
         });
 
-        loadTable(bookService.getAllBooks());
+        loadTableAsync(() -> bookService.getAllBooks(), "Loading all books...");
     }
 
     private void loadTable(List<Book> books) {
@@ -118,6 +141,46 @@ public class BooksPanel extends JPanel {
         }
     }
 
+    private void loadTableAsync(Supplier<List<Book>> supplier, String loadingMessage) {
+        statusLabel.setText(loadingMessage);
+        setButtonsEnabled(false);
+
+        SwingWorker<List<Book>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<Book> doInBackground() {
+                return supplier.get();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<Book> books = get();
+                    loadTable(books);
+                    statusLabel.setText("Loaded " + books.size() + " book(s).");
+                } catch (Exception e) {
+                    statusLabel.setText("Error loading books.");
+                    JOptionPane.showMessageDialog(BooksPanel.this, "Failed to load books.");
+                } finally {
+                    setButtonsEnabled(true);
+                }
+            }
+        };
+
+        worker.execute();
+    }
+
+    private void setButtonsEnabled(boolean enabled) {
+        addButton.setEnabled(enabled);
+        updateButton.setEnabled(enabled);
+        deleteButton.setEnabled(enabled);
+        showAllButton.setEnabled(enabled);
+        searchTitleButton.setEnabled(enabled);
+        searchAuthorButton.setEnabled(enabled);
+        searchCategoryButton.setEnabled(enabled);
+        sortAscButton.setEnabled(enabled);
+        sortDescButton.setEnabled(enabled);
+    }
+
     private void addBook() {
         boolean success = bookService.addBook(
                 titleField.getText().trim(),
@@ -128,7 +191,7 @@ public class BooksPanel extends JPanel {
         if (success) {
             JOptionPane.showMessageDialog(this, "Book added.");
             clearFields();
-            loadTable(bookService.getAllBooks());
+            loadTableAsync(() -> bookService.getAllBooks(), "Reloading books...");
         } else {
             JOptionPane.showMessageDialog(this, "Failed to add book.");
         }
@@ -146,7 +209,7 @@ public class BooksPanel extends JPanel {
             );
 
             JOptionPane.showMessageDialog(this, success ? "Updated." : "Update failed.");
-            loadTable(bookService.getAllBooks());
+            loadTableAsync(() -> bookService.getAllBooks(), "Reloading books...");
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Invalid ID.");
@@ -162,7 +225,7 @@ public class BooksPanel extends JPanel {
 
                 boolean success = bookService.deleteBook(id);
                 JOptionPane.showMessageDialog(this, success ? "Deleted." : "Delete failed.");
-                loadTable(bookService.getAllBooks());
+                loadTableAsync(() -> bookService.getAllBooks(), "Reloading books...");
             }
 
         } catch (Exception e) {
