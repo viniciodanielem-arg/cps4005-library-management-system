@@ -108,5 +108,11 @@ public class BookService {
        return bookDAO.getAllBooksSortedByTitle(ascending);
     }
     
+    public List<Book> searchBooks(String title, String author, String category) {
+       return bookDAO.searchBooks(title, author, category);
+    }
+    
+    
+    
     
 }

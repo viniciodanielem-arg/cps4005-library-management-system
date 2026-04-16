@@ -36,6 +36,7 @@ public class BooksPanel extends JPanel {
     private final JButton searchCategoryButton = new JButton("Search Category");
     private final JButton sortAscButton = new JButton("Sort A-Z");
     private final JButton sortDescButton = new JButton("Sort Z-A");
+    private final JButton searchCombinedButton = new JButton("Advanced Search");
 
     private final JLabel statusLabel = new JLabel(" ");
 
@@ -65,6 +66,7 @@ public class BooksPanel extends JPanel {
         buttonPanel.add(searchCategoryButton);
         buttonPanel.add(sortAscButton);
         buttonPanel.add(sortDescButton);
+        buttonPanel.add(searchCombinedButton);
 
         JPanel topContainer = new JPanel(new BorderLayout());
         topContainer.add(formPanel, BorderLayout.NORTH);
@@ -112,6 +114,17 @@ public class BooksPanel extends JPanel {
 
         sortDescButton.addActionListener(e ->
                 loadTableAsync(() -> bookService.getAllBooksSortedByTitle(false), "Sorting Z-A...")
+        );
+        
+        searchCombinedButton.addActionListener(e ->
+            loadTableAsync(
+                () -> bookService.searchBooks(
+                    titleField.getText().trim(),
+                    authorField.getText().trim(),
+                    categoryField.getText().trim()
+                ),
+                "Running advanced search..."
+            )
         );
 
         table.getSelectionModel().addListSelectionListener(e -> {
@@ -179,6 +192,7 @@ public class BooksPanel extends JPanel {
         searchCategoryButton.setEnabled(enabled);
         sortAscButton.setEnabled(enabled);
         sortDescButton.setEnabled(enabled);
+        searchCombinedButton.setEnabled(enabled);
     }
 
     private void addBook() {

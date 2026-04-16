@@ -273,4 +273,41 @@ public class BookDAO {
 
         return books;
     }
+    
+    public List<Book> searchBooks(String title, String author, String category) {
+        List<Book> books = new ArrayList<>();
+
+        String sql = """
+            SELECT * FROM books
+            WHERE title LIKE ?
+            AND author LIKE ?
+            AND category LIKE ?
+            ORDER BY title ASC
+            """;
+
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, "%" + (title == null ? "" : title.trim()) + "%");
+            pstmt.setString(2, "%" + (author == null ? "" : author.trim()) + "%");
+            pstmt.setString(3, "%" + (category == null ? "" : category.trim()) + "%");
+
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                books.add(new Book(
+                    rs.getInt("book_id"),
+                    rs.getString("title"),
+                    rs.getString("author"),
+                    rs.getString("category"),
+                    rs.getString("availability_status")
+                ));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error performing combined search: " + e.getMessage());
+        }
+
+        return books;
+    }
 }
